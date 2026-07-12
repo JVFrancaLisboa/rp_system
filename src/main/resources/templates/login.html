@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RP System - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --raro-purple-bg: #090314;       /* Roxo ultra profundo (quase preto, base pura) */
+            --raro-purple-accent: #1e0b36;   /* Roxo intermédio para gradientes */
+            --raro-gold: #C5A059;            /* Accent Ouro */
+            --raro-gold-glow: rgba(197, 160, 89, 0.25);
+            --raro-silver: #F5F5F7;          /* Texto principal purificado */
+            --raro-text-secondary: #A393B5;  /* Texto secundário violeta desaturado */
+        }
+
+        body {
+            background: radial-gradient(circle at center, var(--raro-purple-accent) 0%, var(--raro-purple-bg) 100%);
+            color: var(--raro-silver);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Efeito de iluminação de fundo (Orbe de Luz Sutil) */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(197, 160, 89, 0.05) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+        }
+
+        /* Logomarca Flutuante */
+        .logo-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem; /* Aumentado o espaçamento para o card */
+            animation: floatAnimation 4s ease-in-out infinite;
+            filter: drop-shadow(0 15px 20px rgba(0, 0, 0, 0.6)); /* Sombra mais densa para dar profundidade */
+        }
+
+        .logo-img {
+            max-width: 160px; /* Incrementado substancialmente (era 90px) */
+            width: 100%;      /* Garante a responsividade do elemento */
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* Glassmorphism Card (Anti-Corporativo) */
+        .login-card {
+            background: rgba(28, 14, 48, 0.4);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border: 1px solid rgba(197, 160, 89, 0.15);
+            border-radius: 16px; /* Cantos suavizados (Moderna UI) */
+            padding: 3rem 2.5rem 2rem 2.5rem;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.7),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .brand-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: var(--raro-silver);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+
+        .brand-sub {
+            font-size: 0.7rem;
+            color: var(--raro-gold);
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+        }
+
+        .form-label {
+            color: var(--raro-text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Inputs Premium Desvinculados do Padrão Browser */
+        .form-control {
+            background: rgba(10, 3, 20, 0.6);
+            border: 1px solid rgba(163, 147, 181, 0.2);
+            color: var(--raro-silver);
+            border-radius: 8px;
+            padding: 0.85rem 1.1rem;
+            font-size: 0.95rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-control:focus {
+            background: rgba(10, 3, 20, 0.8);
+            border-color: var(--raro-gold);
+            color: var(--raro-silver);
+            box-shadow: 0 0 0 4px var(--raro-gold-glow);
+        }
+
+        .form-control::placeholder {
+            color: rgba(163, 147, 181, 0.3);
+        }
+
+        /* Botão Alta Costura / Minimalista */
+        .btn-raro {
+            background: var(--raro-gold);
+            color: #000000;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border: none;
+            border-radius: 8px;
+            padding: 0.9rem;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.2);
+        }
+
+        .btn-raro:hover {
+            background: #e2ba6e;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(197, 160, 89, 0.4);
+        }
+
+        .btn-raro:active {
+            transform: translateY(0);
+        }
+
+        .system-footer {
+            margin-top: 2rem;
+            font-size: 0.65rem;
+            color: var(--raro-text-secondary);
+            text-align: center;
+            letter-spacing: 2px;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+
+        /* Regras de Animação Pura (GPU Accelerated) */
+        @keyframes floatAnimation {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-16px); /* Amplitude de flutuação ligeiramente maior */
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+
+    <div class="logo-wrapper">
+        <img th:src="@{/images/logo.png}" alt="Raro Porte Logo" class="logo-img">
+    </div>
+
+    <div class="login-card">
+        <div class="brand-logo">Raro Porte</div>
+        <div class="brand-sub">RP System v0.0.1</div>
+
+        <form th:action="@{/login}" method="POST">
+            <div class="mb-3">
+                <label for="username" class="form-label">Sócio / Usuário</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="ex: josue.lisboa" required autocomplete="off">
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">Chave de Acesso</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-raro">Autenticar</button>
+        </form>
+
+        <div class="system-footer">
+            PROPEDÊUTICA DE GOVERNANÇA INTEGRADA
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
