@@ -7,7 +7,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class ControllTestLogin {
 
     @GetMapping("/")
+    public String getDash(){
+        return "dashboard";
+    }
+
+    @GetMapping("/login")
     public String getViewLogin(){
         return "login";
+    }
+
+    @GetMapping("/lotes")
+    public String getViewLote(){
+        return "lote-control";
     }
 }

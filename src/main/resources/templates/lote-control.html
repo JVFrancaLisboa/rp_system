@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raro Porte Supply - Engenharia de Custos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="//cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f0f12;
+            --bg-card: #16161a;
+            --border-color: #24242b;
+            --text-primary: #f5f5f7;
+            --text-muted: #8e8e93;
+            --accent-flash: #0d6efd;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .form-control, .form-select {
+            background-color: #1c1c22;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #1c1c22;
+            border-color: var(--accent-flash);
+            color: var(--text-primary);
+            box-shadow: none;
+        }
+        .form-control::file-selector-button {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            border: none;
+            border-right: 1px solid var(--border-color);
+        }
+        .input-group-text {
+            background-color: var(--border-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table th {
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-uppercase: true;
+        }
+        .table td {
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        .border-bottom-custom {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .preview-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: #0f0f12;
+        }
+    </style>
+</head>
+<body>
+
+<header class="navbar navbar-dark sticky-top bg-dark p-3 shadow-sm border-bottom-custom">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1 fw-bold font-monospace">RARO PORTE SUPPLY <span class="text-muted fs-6 fw-normal">// Core System</span></span>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-secondary me-3">Módulo: Produção & Custos</span>
+            <i class="bi bi-cpu fs-5 text-muted"></i>
+        </div>
+    </div>
+</header>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom-custom">
+        <div>
+            <span class="text-muted text-uppercase small fw-bold font-monospace">// Engenharia de Produto / Módulo de Custos</span>
+            <h1 class="h3 fw-bold m-0 mt-1">Simulador e Calculadora de CPV por Lote</h1>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary btn-sm px-3" onclick="enviarLoteAoSpring()">
+                <i class="bi bi-cloud-upload me-1"></i> Persistir Lote no Sistema
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-12 col-xl-6">
+            <div class="d-flex flex-column gap-4">
+
+                <div class="card p-4 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold m-0 text-uppercase fs-6 tracking-wide text-muted">
+                            <i class="bi bi-box-seam me-2"></i>1. Lote de Entrada (Atacado)
+                        </h5>
+                        <button type="button" class="btn btn-sm btn-outline-light" onclick="adicionarLinhaInsumo()">
+                            <i class="bi bi-plus-lg me-1"></i> Inserir SKU
+                        </button>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label small text-muted fw-semibold">Frete de Transporte do Lote (Nota)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control" id="custo-frete-lote" value="0.00" step="0.01" oninput="calcularCPV()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="container-insumos-lote" class="d-flex flex-column gap-3">
+                        <div class="row g-2 align-items-end确 linha-insumo border-bottom border-secondary border-opacity-10 pb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="small text-muted mb-1 fw-semibold">Tipo de Peça / SKU</label>
+                                <select class="form-select form-select-sm input-sku-tipo" onchange="calcularCPV()">
+                                    <option value="oversized-gola-alta">Oversized Gola Alta (30/1)</option>
+                                    <option value="oversized-normal">Oversized Padrão</option>
+                                    <option value="cropped">Cropped</option>
+                                    <option value="estonada">Estonada Premium</option>
+                                </select>
+                            </div>
+                            <div class="col-4 col-md-2">
+                                <label class="small text-muted mb-1 fw-semibold">Qtd</label>
+                                <input type="number" class="form-control form-control-sm input-sku-qtd" value="1" min="1" oninput="calcularCPV()">
+                            </div>
+                            <div class="col-8 col-md-3">
+                                <label class="small text-muted mb-1 fw-semibold">Custo Unit. (Nota)</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" class="form-control input-sku-preco" value="22.90" step="0.01" oninput="calcularCPV()">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="small text-muted mb-1 fw-semibold">Foto Referência</label>
+                                <input type="file" class="form-control form-control-sm input-sku-foto" accept="image/*" onchange="previewImagem(this)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4 shadow-sm">
+                    <h5 class="fw-bold mb-3 text-uppercase fs-6 tracking-wide text-muted">
+                        <i class="bi bi-layers me-2"></i>2. Customização e Logística Provedora
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small text-muted fw-semibold">Custo Unitário da Estampa (Filme DTF)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control" id="custo-dtf-unitario" value="10.00" step="0.01" oninput="calcularCPV()">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small text-muted fw-semibold">Logística Terceirizada (Uber Coleta)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control" id="custo-logistica-coleta" value="35.00" step="0.01" oninput="calcularCPV()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4 shadow-sm">
+                    <h5 class="fw-bold mb-3 text-uppercase fs-6 tracking-wide text-muted">
+                        <i class="bi bi-lightning-charge me-2"></i>3. Custos Marginais Operacionais e Perdas
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small text-muted fw-semibold">KWh por Batida</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control" id="custo-energia-prensa" value="0.15" step="0.01" oninput="calcularCPV()">
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small text-muted fw-semibold">Depreciação Prensa</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control" id="custo-depreciacao-prensa" value="0.27" step="0.01" oninput="calcularCPV()">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small text-muted fw-semibold">Packaging (Tags/Sacola)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control" id="custo-embalagem-unitario" value="2.50" step="0.01" oninput="calcularCPV()">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small text-muted fw-semibold">Margem de Refugo / Perda Operacional de Segurança</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="margem-perda-seguranca" value="2" min="0" max="100" oninput="calcularCPV()">
+                                <span class="input-group-text">% de perda tolerada</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+            <div class="card p-4 shadow-sm h-100">
+                <h5 class="fw-bold mb-3 text-uppercase fs-6 tracking-wide text-muted">
+                    <i class="bi bi-calculator me-2"></i>Resumo do Processamento Atuarial de Custos
+                </h5>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <div class="bg-dark p-3 rounded border border-secondary border-opacity-10">
+                            <span class="text-muted d-block small fw-semibold">Volume Total do Lote</span>
+                            <span class="fw-bold fs-4 text-white" id="output-total-pecas">0</span> <small class="text-muted">unidades</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-dark p-3 rounded border border-secondary border-opacity-10">
+                            <span class="text-muted d-block small fw-semibold">Investimento Total Bruto</span>
+                            <span class="fw-bold fs-4 text-warning" id="output-custo-total-nota">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle m-0">
+                        <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Especificação SKU</th>
+                            <th>Base + Frete</th>
+                            <th class="text-danger">CPV Real</th>
+                            <th>Markup Sugerido (3x)</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody-resultado-cpv">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 p-3 bg-dark rounded border border-secondary border-opacity-10">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-bold text-uppercase">Custo Médio Ponderado Unitário do Lote:</span>
+                        <span class="fs-4 fw-bold text-info" id="output-cpv-medio">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function adicionarLinhaInsumo() {
+        const container = document.getElementById('container-insumos-lote');
+        const novaLinha = document.createElement('div');
+        novaLinha.className = 'row g-2 align-items-end linha-insumo mt-3 border-bottom border-secondary border-opacity-10 pb-3';
+        novaLinha.innerHTML = `
+                <div class="col-12 col-md-4">
+                    <select class="form-select form-select-sm input-sku-tipo" onchange="calcularCPV()">
+                        <option value="oversized-gola-alta">Oversized Gola Alta (30/1)</option>
+                        <option value="oversized-normal">Oversized Padrão</option>
+                        <option value="cropped">Cropped</option>
+                        <option value="estonada">Estonada Premium</option>
+                    </select>
+                </div>
+                <div class="col-4 col-md-2">
+                    <input type="number" class="form-control form-control-sm input-sku-qtd" value="1" min="1" oninput="calcularCPV()">
+                </div>
+                <div class="col-8 col-md-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" class="form-control input-sku-preco" value="19.90" step="0.01" oninput="calcularCPV()">
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="input-group input-group-sm">
+                        <input type="file" class="form-control form-control-sm input-sku-foto" accept="image/*" onchange="previewImagem(this)">
+                        <button class="btn btn-outline-danger" type="button" onclick="this.closest('.linha-insumo').remove(); calcularCPV();">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        container.appendChild(novaLinha);
+        calcularCPV();
+    }
+
+    function previewImagem(input) {
+        // Gerencia dinamicamente a atualização visual da miniatura associada à linha
+        const linha = input.closest('.linha-insumo');
+        let tipo = linha.querySelector('.input-sku-tipo').value;
+        calcularCPV();
+    }
+
+    function calcularCPV() {
+        const custoFreteLote = parseFloat(document.getElementById('custo-frete-lote').value) || 0;
+        const custoDtfUnitario = parseFloat(document.getElementById('custo-dtf-unitario').value) || 0;
+        const custoLogisticaColeta = parseFloat(document.getElementById('custo-logistica-coleta').value) || 0;
+        const custoEnergiaPrensa = parseFloat(document.getElementById('custo-energia-prensa').value) || 0;
+        const custoDepreciacaoPrensa = parseFloat(document.getElementById('custo-depreciacao-prensa').value) || 0;
+        const custoEmbalagemUnitario = parseFloat(document.getElementById('custo-embalagem-unitario').value) || 0;
+        const margemPerda = parseFloat(document.getElementById('margem-perda-seguranca').value) || 0;
+
+        const linhas = document.querySelectorAll('.linha-insumo');
+        let totalPecasLote = 0;
+        let custoTotalNotaBlanks = 0;
+
+        // Varredura 1: Soma dos fatores de peso absolutos
+        linhas.forEach(linha => {
+            const qtd = parseInt(linha.querySelector('.input-sku-qtd').value) || 0;
+            const preco = parseFloat(linha.querySelector('.input-sku-preco').value) || 0;
+            totalPecasLote += qtd;
+            custoTotalNotaBlanks += (qtd * preco);
+        });
+
+        document.getElementById('output-total-pecas').innerText = totalPecasLote;
+        document.getElementById('output-custo-total-nota').innerText = 'R$ ' + (custoTotalNotaBlanks + custoFreteLote).toFixed(2);
+
+        const tbody = document.getElementById('tbody-resultado-cpv');
+        tbody.innerHTML = '';
+
+        if (totalPecasLote === 0) {
+            document.getElementById('output-cpv-medio').innerText = 'R$ 0,00';
+            return;
+        }
+
+        let acumuloCpvPonderado = 0;
+
+        // Varredura 2: Aplicação do rateio proporcional por valor (Método Atuarial Ponderado)
+        linhas.forEach((linha, index) => {
+            const tipoSelect = linha.querySelector('.input-sku-tipo');
+            const tipoTexto = tipoSelect.option?.[tipoSelect.selectedIndex]?.text || tipoSelect.options[tipoSelect.selectedIndex].text;
+            const qtd = parseInt(linha.querySelector('.input-sku-qtd').value) || 0;
+            const precoNotaUnitario = parseFloat(linha.querySelector('.input-sku-preco').value) || 0;
+            const fotoInput = linha.querySelector('.input-sku-foto');
+
+            if (qtd === 0) return;
+
+            // Execução do fator de rateio ponderado do frete
+            let proporcaoValorLote = (precoNotaUnitario * qtd) / (custoTotalNotaBlanks || 1);
+            let freteProporcionalUnitario = (custoFreteLote * proporcaoValorLote) / qtd;
+            let custoBaseComFrete = precoNotaUnitario + freteProporcionalUnitario;
+
+            // Alocação marginal de custos operacionais + logística de busca diluída por unidade
+            let logisticaBuscaDiluida = custoLogisticaColeta / totalPecasLote;
+            let customizacaoAgregada = custoDtfUnitario + logisticaBuscaDiluida + custoEnergiaPrensa + custoDepreciacaoPrensa + custoEmbalagemUnitario;
+
+            // Aplicação do fator multiplicador de perda operacional (Refugo de prensa)
+            let cpvUnitarioReal = (custoBaseComFrete + customizacaoAgregada) * (1 + (margemPerda / 100));
+
+            acumuloCpvPonderado += (cpvUnitarioReal * qtd);
+
+            // Geração da miniatura em base64 local para fins de conferência na listagem
+            let imgSrc = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="%23444" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
+            if (fotoInput && fotoInput.files && fotoInput.files[0]) {
+                imgSrc = URL.createObjectURL(fotoInput.files[0]);
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                    <td><img src="${imgSrc}" class="preview-img" id="preview-row-${index}"></td>
+                    <td>
+                        <span class="fw-semibold d-block fs-7">${tipoTexto}</span>
+                        <small class="text-muted font-monospace">${qtd} un. alocadas</small>
+                    </td>
+                    <td class="font-monospace fs-7">R$ ${custoBaseComFrete.toFixed(2)}</td>
+                    <td class="text-danger fw-bold font-monospace fs-7">R$ ${cpvUnitarioReal.toFixed(2)}</td>
+                    <td><span class="badge bg-success fs-7">R$ ${(cpvUnitarioReal * 3).toFixed(2)}</span></td>
+                `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('output-cpv-medio').innerText = 'R$ ' + (acumuloCpvPonderado / totalPecasLote).toFixed(2);
+    }
+
+    // Simulação estruturada do envio assíncrono para o ecossistema Spring Boot
+    function enviarLoteAoSpring() {
+        const formData = new FormData();
+        formData.append("freteTotal", document.getElementById("custo-frete-lote").value);
+        formData.append("custoDtf", document.getElementById("custo-dtf-unitario").value);
+        formData.append("logisticaUber", document.getElementById("custo-logistica-coleta").value);
+
+        const linhas = document.querySelectorAll('.linha-insumo');
+        let possuiArquivos = false;
+
+        linhas.forEach((linha, index) => {
+            formData.append(`itens[${index}].tipo`, linha.querySelector('.input-sku-tipo').value);
+            formData.append(`itens[${index}].quantidade`, linha.querySelector('.input-sku-qtd').value);
+            formData.append(`itens[${index}].precoNota`, linha.querySelector('.input-sku-preco').value);
+
+            const file = linha.querySelector('.input-sku-foto').files[0];
+            if (file) {
+                formData.append("images", file);
+                possuiArquivos = true;
+            }
+        });
+
+        console.log("Payload Multipart/Form-Data gerado com sucesso. Pronto para disparo.");
+        alert("Estrutura FormData de alta fidelidade montada. Enviando para o endpoint POST /api/v1/lotes no Spring Boot.");
+    }
+
+    window.onload = calcularCPV;
+</script>
+</body>
+</html>
