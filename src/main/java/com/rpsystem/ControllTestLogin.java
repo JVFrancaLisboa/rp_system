@@ -16,8 +16,18 @@ public class ControllTestLogin {
         return "login";
     }
 
-    @GetMapping("/lotes")
-    public String getViewLote(){
-        return "lote-control";
+    @GetMapping("/add-blanks")
+    public String getViewAddBlanks(){
+        return "add-blanks";
+    }
+
+    @GetMapping("/entrada-dtf")
+    public String getViewEntradaDtf(){
+        return "entrada-dtf";
+    }
+
+    @GetMapping("/montagem-pecas")
+    public String getViewMontagemPecas(){
+        return "montagem-pecas";
     }
 }

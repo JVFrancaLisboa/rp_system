@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem de Produção | Raro Porte</title>
+    <!-- Bootstrap 5 Core -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --rp-bg-base: #0A0A0A;
+            --rp-bg-surface: #141414;
+            --rp-border: #2A2A2A;
+            --rp-text-main: #F5F5F5;
+            --rp-text-muted: #8A8A8A;
+            --rp-accent: #FFFFFF;
+            --rp-accent-invert: #000000;
+            --rp-danger: #D32F2F;
+        }
+
+        body {
+            background-color: var(--rp-bg-base);
+            color: var(--rp-text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .surface-card {
+            background-color: var(--rp-bg-surface);
+            border: 1px solid var(--rp-border);
+            border-radius: 8px;
+        }
+
+        .form-control, .form-select, .input-group-text {
+            background-color: var(--rp-bg-base);
+            border: 1px solid var(--rp-border);
+            color: var(--rp-text-main);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--rp-bg-base);
+            border-color: var(--rp-text-muted);
+            box-shadow: none;
+            color: var(--rp-text-main);
+        }
+
+        .btn-brand {
+            background-color: var(--rp-accent);
+            color: var(--rp-accent-invert);
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .btn-brand:hover {
+            opacity: 0.85;
+        }
+
+        .btn-outline-brand {
+            border: 1px dashed var(--rp-border);
+            color: var(--rp-text-main);
+            background: transparent;
+        }
+
+        .btn-outline-brand:hover {
+            border-color: var(--rp-text-muted);
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--rp-accent);
+        }
+
+        .memory-table th, .memory-table td {
+            background-color: transparent;
+            color: var(--rp-text-main);
+            border-color: var(--rp-border);
+            font-family: monospace;
+            padding: 1rem;
+        }
+
+        .mockup-upload-zone {
+            border: 2px dashed var(--rp-border);
+            border-radius: 8px;
+            padding: 3rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            background-color: var(--rp-bg-base);
+        }
+
+        .mockup-upload-zone:hover {
+            border-color: var(--rp-text-muted);
+        }
+
+        .fragment-row {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="py-5">
+
+<div class="container-fluid" style="max-width: 1400px;">
+
+    <header class="mb-4 border-bottom border-secondary pb-3 d-flex align-items-center gap-3">
+        <div>
+            <h2 class="fw-bold text-uppercase tracking-wide mb-0">Ordem de Produção (Montagem)</h2>
+            <p class="text-secondary mb-0">Consolidação do CPV, execução FIFO e baixa volumétrica de insumos.</p>
+        </div>
+    </header>
+
+    <form action="/api/v1/producao/ordens" method="POST" enctype="multipart/form-data" id="formProducao">
+        <div class="row g-4">
+
+            <!-- EIXO ESQUERDO: Motor de Regras e Fragmentação -->
+            <div class="col-lg-7">
+
+                <!-- Bloco 1: Matéria-Prima e Escopo -->
+                <div class="surface-card p-4 mb-4">
+                    <h6 class="fw-bold text-uppercase mb-4 text-secondary">1. Definição de Escopo e Matriz Físico</h6>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label text-secondary small text-uppercase">Descrição / Nome da Peça</label>
+                            <input type="text" class="form-control fw-bold" name="descricaoModelo" placeholder="Ex: Camiseta Drop 1 - Estampa Loyalty" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label text-secondary small text-uppercase">SKU Matriz (Blank)</label>
+                            <select class="form-select font-monospace text-uppercase" name="skuBlankId" required>
+                                <option value="" selected disabled>Selecione o Lote Ativo...</option>
+                                <option value="1">OVER-PRETA-G (Estoque: 45)</option>
+                                <option value="2">OVER-BRANCA-M (Estoque: 12)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary small text-uppercase">Qtd Produzir</label>
+                            <input type="number" min="1" class="form-control calc-trigger" id="qtdProduzir" name="quantidadeProduzir" placeholder="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small text-uppercase">Responsável</label>
+                            <select class="form-select" name="operadorResponsavel" required>
+                                <option value="josue">Josué</option>
+                                <option value="paulinn">Paulinn</option>
+                                <option value="zdeek">Zdeek</option>
+                                <option value="kallebe">Kallebe</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloco 2: Engine de Fragmentos DTF -->
+                <div class="surface-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6 class="fw-bold text-uppercase mb-0 text-secondary">2. Motor de Fragmentos de DTF</h6>
+                        <span class="badge bg-dark border border-secondary text-secondary">Cálculo de Área Nominal</span>
+                    </div>
+
+                    <div id="fragmentContainer">
+                        <div class="fragment-row border border-secondary rounded p-3 mb-3" data-index="0">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small text-uppercase">Posição / Design</label>
+                                    <input type="text" class="form-control" name="fragmentos[0].descricao" placeholder="Ex: Logo Peito" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-secondary small text-uppercase">Largura (cm)</label>
+                                    <input type="number" step="0.1" class="form-control dim-input calc-trigger" name="fragmentos[0].largura" placeholder="0.0" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-secondary small text-uppercase">Altura (cm)</label>
+                                    <input type="number" step="0.1" class="form-control dim-input calc-trigger" name="fragmentos[0].altura" placeholder="0.0" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-outline-danger w-100" onclick="removerFragmento(this)" disabled>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-brand w-100 py-3 mt-2" onclick="adicionarFragmento()">
+                        + ADICIONAR NOVO FRAGMENTO NA PEÇA
+                    </button>
+                </div>
+
+                <!-- Bloco 3: Eficiência Operacional -->
+                <div class="surface-card p-4">
+                    <h6 class="fw-bold text-uppercase mb-4 text-secondary">3. Fator de Aproveitamento (Refugo)</h6>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <input type="number" min="1" max="100" step="1" class="form-control calc-trigger" id="fatorAproveitamento" name="fatorAproveitamentoPerc" value="85" required>
+                                <span class="input-group-text border-start-0">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="text-secondary small mb-0">Define a eficiência do corte. Um fator de 85% significa que 15% da área do rolo é considerada perda física e terá seu custo reabsorvido pelo produto acabado.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- EIXO DIREITO: Validação Visual e Memória de Cálculo -->
+            <div class="col-lg-5">
+
+                <div class="surface-card p-4 mb-4 sticky-top" style="top: 2rem;">
+                    <h6 class="fw-bold text-uppercase mb-4 text-secondary">Visualização e Feedback</h6>
+
+                    <!-- Upload do Mockup -->
+                    <label class="form-label text-secondary small text-uppercase">Mockup Digital (Arte Final)</label>
+                    <div class="mockup-upload-zone mb-4" id="dropZone" onclick="document.getElementById('mockupInput').click()">
+                        <i class="bi bi-cloud-arrow-up display-4 text-secondary mb-3"></i>
+                        <h6 class="text-white">Arraste a imagem ou clique para selecionar</h6>
+                        <p class="text-secondary small mb-0">Formatos suportados: PNG, JPG (Exportação Kittl)</p>
+                        <input type="file" id="mockupInput" name="fotoMockup" class="d-none" accept="image/*">
+                    </div>
+
+                    <!-- Tabela de Memória de Cálculo (Tempo Real) -->
+                    <label class="form-label text-secondary small text-uppercase">Memória de Cálculo (Projeção do Banco de Dados)</label>
+                    <div class="table-responsive">
+                        <table class="table table-bordered memory-table mb-0">
+                            <tbody>
+                            <tr>
+                                <td class="text-secondary">Área Nominal Pura (Por Peça)</td>
+                                <td class="text-end text-white" id="memAreaNominal">0.0 cm²</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Margem de Refugo Embutida</td>
+                                <td class="text-end" style="color: var(--rp-danger);" id="memRefugo">+ 0.0 cm²</td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary fw-bold">Área Real Debitada (Por Peça)</td>
+                                <td class="text-end fw-bold text-white" id="memAreaReal">0.0 cm²</td>
+                            </tr>
+                            <tr class="border-top border-2 border-secondary bg-dark">
+                                <td class="text-secondary fw-bold">Débito Total no Estoque Fluido</td>
+                                <td class="text-end fw-bold" style="color: var(--rp-accent);" id="memDebitoTotal">0.0 cm²</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-brand w-100 py-3 d-flex justify-content-center align-items-center gap-2">
+                            <i class="bi bi-cpu"></i> INJETAR ORDEM NO BANCO DE DADOS
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    /**
+     * Motor de Adição de Fragmentos e Binding do Spring.
+     */
+    function adicionarFragmento() {
+        const container = document.getElementById('fragmentContainer');
+        const rows = container.getElementsByClassName('fragment-row');
+        const newIndex = rows.length;
+
+        const newRow = rows[0].cloneNode(true);
+        newRow.setAttribute('data-index', newIndex);
+
+        const inputs = newRow.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.value = '';
+            if(input.name.includes('fragmentos[')) {
+                input.name = input.name.replace(/fragmentos\[\d+\]/, `fragmentos[${newIndex}]`);
+            }
+            // Readiciona o listener para o cálculo em tempo real
+            if(input.classList.contains('calc-trigger')) {
+                input.addEventListener('input', recalcularMemoria);
+            }
+        });
+
+        // Habilita o botão de remoção nas linhas clonadas
+        newRow.querySelector('.btn-outline-danger').disabled = false;
+
+        container.appendChild(newRow);
+        recalcularMemoria();
+    }
+
+    function removerFragmento(button) {
+        const row = button.closest('.fragment-row');
+        row.remove();
+        recalcularMemoria();
+    }
+
+    /**
+     * Motor de Resolução Matemática Espacial.
+     * Calcula as invariantes de domínio antes da submissão da transação ACID.
+     */
+    function recalcularMemoria() {
+        let areaNominalTotal = 0;
+
+        // 1. Somatório das áreas dos fragmentos
+        const fragmentos = document.querySelectorAll('.fragment-row');
+        fragmentos.forEach(row => {
+            const inputs = row.querySelectorAll('.dim-input');
+            const largura = parseFloat(inputs[0].value) || 0;
+            const altura = parseFloat(inputs[1].value) || 0;
+            areaNominalTotal += (largura * altura);
+        });
+
+        // 2. Extração de variáveis de escopo
+        const fatorPercentual = parseFloat(document.getElementById('fatorAproveitamento').value) || 100;
+        const qtdProduzir = parseInt(document.getElementById('qtdProduzir').value) || 0;
+
+        // 3. Aplicação da Teoria de Custos (Custeio por Absorção de Perdas)
+        const fatorDecimal = fatorPercentual / 100.0;
+        const areaRealDebitada = fatorDecimal > 0 ? (areaNominalTotal / fatorDecimal) : 0;
+        const refugoAbsoluto = areaRealDebitada - areaNominalTotal;
+        const debitoTotalEstoque = areaRealDebitada * qtdProduzir;
+
+        // 4. Injeção no DOM
+        document.getElementById('memAreaNominal').textContent = `${areaNominalTotal.toFixed(1)} cm²`;
+        document.getElementById('memRefugo').textContent = `+ ${refugoAbsoluto.toFixed(1)} cm²`;
+        document.getElementById('memAreaReal').textContent = `${areaRealDebitada.toFixed(1)} cm²`;
+        document.getElementById('memDebitoTotal').textContent = `${debitoTotalEstoque.toFixed(1)} cm²`;
+    }
+
+    // Inicialização dos listeners de cálculo
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.calc-trigger').forEach(input => {
+            input.addEventListener('input', recalcularMemoria);
+        });
+    });
+</script>
+
+</body>
+</html>
