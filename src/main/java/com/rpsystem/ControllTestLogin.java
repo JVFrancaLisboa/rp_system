@@ -1,14 +1,20 @@
 package com.rpsystem;
 
+import com.rpsystem.domain.inventory.repository.LoteBlankItemRepository;
+import org.springframework.ui.Model;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.List;
+import com.rpsystem.domain.inventory.model.LoteBlankItem;
 
 @Controller
 public class ControllTestLogin {
 
-    @GetMapping("/")
-    public String getDash(){
-        return "dashboard";
+    private final LoteBlankItemRepository loteBlankItemRepository;
+
+    public ControllTestLogin(LoteBlankItemRepository loteBlankItemRepository) {
+        this.loteBlankItemRepository = loteBlankItemRepository;
     }
 
     @GetMapping("/login")
@@ -27,7 +33,10 @@ public class ControllTestLogin {
     }
 
     @GetMapping("/montagem-pecas")
-    public String getViewMontagemPecas(){
+    public String getViewMontagemPecas(Model model){
+        List<LoteBlankItem> blanksDisponiveis = loteBlankItemRepository.findAllDisponiveisOrderByEntradaAsc();
+        model.addAttribute("blanksDisponiveis", blanksDisponiveis);
+        model.addAttribute("temBlanksDisponiveis", !blanksDisponiveis.isEmpty());
         return "montagem-pecas";
     }
 }

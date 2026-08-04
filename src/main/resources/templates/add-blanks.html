@@ -100,6 +100,10 @@
         </div>
     </header>
 
+    <div class="alert alert-info border-0 bg-dark text-info mb-4">
+        Se o SKU Base e o tamanho já existirem neste lote, a linha será consolidada automaticamente para evitar duplicidade.
+    </div>
+
     <!-- Formulário Padronizado (Sem Multipart) -->
     <form action="/api/v1/lotes/blanks" method="POST" id="formLote">
 
@@ -133,11 +137,11 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-md-5">
                             <label class="form-label text-secondary small text-uppercase">Modelo/Cor (SKU Base)</label>
-                            <input type="text" class="form-control font-monospace text-uppercase" name="itens[0].skuBase" placeholder="EX: OVER-PRETA" required>
+                            <input type="text" class="form-control font-monospace text-uppercase sku-base-input" name="itens[0].skuBase" placeholder="EX: OVER-PRETA" required>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-secondary small text-uppercase">Tamanho</label>
-                            <select class="form-select font-monospace" name="itens[0].tamanho" required>
+                            <select class="form-select font-monospace tamanho-input" name="itens[0].tamanho" required>
                                 <option value="" selected disabled>SEL...</option>
                                 <option value="P">P</option>
                                 <option value="M">M</option>
@@ -148,13 +152,14 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-secondary small text-uppercase">Qtd</label>
-                            <input type="number" min="1" class="form-control" name="itens[0].quantidadeAdquirida" placeholder="0" required>
+                            <input type="number" min="1" class="form-control quantidade-input" name="itens[0].quantidadeAdquirida" placeholder="0" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label text-secondary small text-uppercase">Preço Unit. (R$)</label>
-                            <input type="number" step="0.01" class="form-control" name="itens[0].precoNotaUnitario" placeholder="0.00" required>
+                            <input type="number" step="0.01" class="form-control preco-input" name="itens[0].precoNotaUnitario" placeholder="0.00" required>
                         </div>
                     </div>
+                    <div class="small text-info mt-2 consolidation-note d-none">Item consolidado automaticamente com outro igual neste lote.</div>
                 </div>
             </div>
 
@@ -208,9 +213,102 @@
             }
         });
 
+        newRow.classList.remove('border-info', 'shadow-sm');
+        const note = newRow.querySelector('.consolidation-note');
+        if (note) {
+            note.classList.add('d-none');
+        }
+
         // Injeção do nó processado no DOM
         container.appendChild(newRow);
+        registrarConsolidacaoListeners(newRow);
     }
+
+    function registrarConsolidacaoListeners(row) {
+        row.querySelectorAll('.sku-base-input, .tamanho-input, .quantidade-input, .preco-input').forEach(input => {
+            input.addEventListener('blur', consolidarLinhasDuplicadas);
+            input.addEventListener('change', consolidarLinhasDuplicadas);
+        });
+    }
+
+    function normalizarTexto(valor) {
+        return (valor || '').trim().toUpperCase();
+    }
+
+    function getItemKey(row) {
+        const skuInput = row.querySelector('.sku-base-input');
+        const tamanhoInput = row.querySelector('.tamanho-input');
+        const skuBase = normalizarTexto(skuInput ? skuInput.value : '');
+        const tamanho = normalizarTexto(tamanhoInput ? tamanhoInput.value : '');
+
+        if (!skuBase || !tamanho) {
+            return null;
+        }
+
+        return `${skuBase}|${tamanho}`;
+    }
+
+    function renumerarLinhas() {
+        const rows = document.querySelectorAll('#skuContainer .sku-row');
+        rows.forEach((row, index) => {
+            row.setAttribute('data-index', index);
+
+            row.querySelectorAll('input, select').forEach(element => {
+                if (element.hasAttribute('name') && element.name.includes('itens[')) {
+                    element.name = element.name.replace(/itens\[\d+\]/, `itens[${index}]`);
+                }
+            });
+        });
+    }
+
+    function consolidarLinhasDuplicadas() {
+        const rows = Array.from(document.querySelectorAll('#skuContainer .sku-row'));
+        const mapa = new Map();
+
+        rows.forEach(row => {
+            const key = getItemKey(row);
+            if (!key) {
+                return;
+            }
+
+            const rowQuantidade = parseFloat(row.querySelector('.quantidade-input')?.value || '0') || 0;
+            const rowPreco = parseFloat(row.querySelector('.preco-input')?.value || '0') || 0;
+
+            if (!mapa.has(key)) {
+                mapa.set(key, { row, rowQuantidade, rowPreco });
+                return;
+            }
+
+            const destino = mapa.get(key);
+            const totalQuantidade = destino.rowQuantidade + rowQuantidade;
+            const totalValor = (destino.rowQuantidade * destino.rowPreco) + (rowQuantidade * rowPreco);
+            const precoMedio = totalQuantidade > 0 ? (totalValor / totalQuantidade) : 0;
+
+            destino.rowQuantidade = totalQuantidade;
+            destino.rowPreco = precoMedio;
+
+            const quantidadeDestino = destino.row.querySelector('.quantidade-input');
+            const precoDestino = destino.row.querySelector('.preco-input');
+            if (quantidadeDestino) {
+                quantidadeDestino.value = String(totalQuantidade);
+            }
+            if (precoDestino) {
+                precoDestino.value = precoMedio.toFixed(2);
+            }
+
+            destino.row.classList.add('border-info', 'shadow-sm');
+            const note = destino.row.querySelector('.consolidation-note');
+            if (note) {
+                note.classList.remove('d-none');
+            }
+
+            row.remove();
+        });
+
+        renumerarLinhas();
+    }
+
+    registrarConsolidacaoListeners(document.querySelector('.sku-row'));
 </script>
 
 </body>

@@ -87,8 +87,8 @@
         </div>
     </header>
 
-    <!-- Formulário Submetido via JSON (Transação ACID) -->
-    <form id="formDtf" onsubmit="prepararPayload(event)">
+    <!-- Formulário transacional persistido no backend -->
+    <form id="formDtf" action="/api/v1/estoque/dtf" method="POST">
 
         <!-- Bloco 1: Dimensões Físicas do Lote -->
         <div class="surface-card p-4 mb-4">
@@ -150,7 +150,7 @@
         <!-- Ação Transacional -->
         <div class="d-flex justify-content-end gap-3 mt-5">
             <a href="/dashboard" class="btn btn-link text-secondary text-decoration-none">Cancelar</a>
-            <button type="submit" class="btn btn-brand px-5 py-2">
+            <button type="submit" class="btn btn-brand px-5 py-2" id="submitDtfButton">
                 <i class="bi bi-database-add me-2"></i> INJETAR NO ESTOQUE FLUIDO
             </button>
         </div>
@@ -182,29 +182,11 @@
         document.getElementById('custoPreview').innerHTML = `R$ ${custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
-    /**
-     * Intercepta o formulário para disparar um payload JSON puro,
-     * respeitando a arquitetura transacional definida no protocolo.
-     */
-    function prepararPayload(event) {
-        event.preventDefault();
-
-        const payload = {
-            largura: parseFloat(document.getElementById('largura').value),
-            comprimento: parseFloat(document.getElementById('comprimento').value),
-            valorNota: parseFloat(document.getElementById('valorNota').value),
-            custoLogistico: parseFloat(document.getElementById('custoLogistico').value)
-        };
-
-        // Simulação da chamada Fetch API para o endpoint transacional do Spring Boot
-        console.log("Payload JSON pronto para o Backend:", JSON.stringify(payload));
-
-        // fetch('/api/v1/estoque/dtf', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(payload)
-        // }).then(response => { ... });
-    }
+    document.getElementById('formDtf').addEventListener('submit', () => {
+        const button = document.getElementById('submitDtfButton');
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>PROCESSANDO...';
+    });
 </script>
 
 </body>
