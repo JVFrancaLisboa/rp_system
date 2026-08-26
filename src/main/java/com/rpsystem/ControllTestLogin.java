@@ -18,25 +18,30 @@ public class ControllTestLogin {
     }
 
     @GetMapping("/login")
-    public String getViewLogin(){
+    public String getViewLogin() {
         return "login";
     }
 
     @GetMapping("/add-blanks")
-    public String getViewAddBlanks(){
+    public String getViewAddBlanks() {
         return "add-blanks";
     }
 
     @GetMapping("/entrada-dtf")
-    public String getViewEntradaDtf(){
+    public String getViewEntradaDtf() {
         return "entrada-dtf";
     }
 
     @GetMapping("/montagem-pecas")
-    public String getViewMontagemPecas(Model model){
+    public String getViewMontagemPecas(Model model) {
         List<LoteBlankItem> blanksDisponiveis = loteBlankItemRepository.findAllDisponiveisOrderByEntradaAsc();
         model.addAttribute("blanksDisponiveis", blanksDisponiveis);
         model.addAttribute("temBlanksDisponiveis", !blanksDisponiveis.isEmpty());
         return "montagem-pecas";
+    }
+
+    @GetMapping("/fluxo-caixa")
+    public String getViewFluxoCaixa() {
+        return "fluxo-caixa";
     }
 }
