@@ -10,6 +10,7 @@ import com.rpsystem.domain.production.model.OrdemProducaoConsumoDtf;
 import com.rpsystem.domain.production.model.OrdemProducaoFragmento;
 import com.rpsystem.domain.production.repository.OrdemProducaoRepository;
 import com.rpsystem.presentation.request.OrdemProducaoCreateRequest;
+import com.rpsystem.application.finance.FluxoCaixaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,15 +37,18 @@ public class OrdemProducaoService {
     private final OrdemProducaoRepository ordemProducaoRepository;
     private final LoteBlankItemRepository loteBlankItemRepository;
     private final EstoqueFluidoDtfRepository estoqueFluidoDtfRepository;
+    private final FluxoCaixaService fluxoCaixaService;
 
     public OrdemProducaoService(
             OrdemProducaoRepository ordemProducaoRepository,
             LoteBlankItemRepository loteBlankItemRepository,
-            EstoqueFluidoDtfRepository estoqueFluidoDtfRepository
+            EstoqueFluidoDtfRepository estoqueFluidoDtfRepository,
+            FluxoCaixaService fluxoCaixaService
     ) {
         this.ordemProducaoRepository = ordemProducaoRepository;
         this.loteBlankItemRepository = loteBlankItemRepository;
         this.estoqueFluidoDtfRepository = estoqueFluidoDtfRepository;
+        this.fluxoCaixaService = fluxoCaixaService;
     }
 
     @Transactional
@@ -157,7 +161,9 @@ public class OrdemProducaoService {
         ordem.setCpvUnitarioFinal(cpvUnitarioFinal);
 
         estoqueFluidoDtfRepository.save(estoque);
-        return ordemProducaoRepository.save(ordem);
+        OrdemProducao salva = ordemProducaoRepository.save(ordem);
+        fluxoCaixaService.registrarOrdemProducao(salva, areaNominalPorPeca, areaRealTotal, custoMedioDtf);
+        return salva;
     }
 
     private String salvarMockupObrigatorio(MultipartFile arquivo) {

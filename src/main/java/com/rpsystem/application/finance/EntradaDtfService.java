@@ -19,10 +19,16 @@ public class EntradaDtfService {
 
     private final EstoqueFluidoDtfRepository estoqueFluidoDtfRepository;
     private final EntradaDtfRepository entradaDtfRepository;
+    private final FluxoCaixaService fluxoCaixaService;
 
-    public EntradaDtfService(EstoqueFluidoDtfRepository estoqueFluidoDtfRepository, EntradaDtfRepository entradaDtfRepository) {
+    public EntradaDtfService(
+            EstoqueFluidoDtfRepository estoqueFluidoDtfRepository,
+            EntradaDtfRepository entradaDtfRepository,
+            FluxoCaixaService fluxoCaixaService
+    ) {
         this.estoqueFluidoDtfRepository = estoqueFluidoDtfRepository;
         this.entradaDtfRepository = entradaDtfRepository;
+        this.fluxoCaixaService = fluxoCaixaService;
     }
 
     @Transactional
@@ -70,6 +76,8 @@ public class EntradaDtfService {
         entrada.setRegistradoEm(LocalDateTime.now());
         entrada.setEstoqueFluidoDtf(estoque);
 
-        return entradaDtfRepository.save(entrada);
+        EntradaDtf salva = entradaDtfRepository.save(entrada);
+        fluxoCaixaService.registrarEntradaDtf(salva);
+        return salva;
     }
 }

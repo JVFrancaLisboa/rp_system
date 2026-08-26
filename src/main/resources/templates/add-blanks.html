@@ -91,12 +91,21 @@
 
 <div class="container" style="max-width: 900px;">
 
-    <header class="mb-5 border-bottom border-secondary pb-3 d-flex align-items-center gap-3">
-        <!-- Renderização Dinâmica Thymeleaf -->
-        <img th:src="@{/images/logo.png}" alt="Raro Porte Logo" class="logo-img">
-        <div>
-            <h2 class="fw-bold text-uppercase tracking-wide mb-0">Entrada de Lote: Blanks</h2>
-            <p class="text-secondary mb-0">Ingestão de matrizes físicas e rateio dinâmico de frete.</p>
+    <header class="mb-5 border-bottom border-secondary pb-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <img th:src="@{/images/logo.png}" alt="Raro Porte Logo" class="logo-img">
+            <div>
+                <h2 class="fw-bold text-uppercase tracking-wide mb-0">Entrada de Lote: Blanks</h2>
+                <p class="text-secondary mb-0">Ingestão de matrizes físicas e rateio dinâmico de frete.</p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i> Painel Geral
+            </a>
+            <a th:href="@{/fluxo-caixa}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-wallet2 me-1"></i> Fluxo de Caixa
+            </a>
         </div>
     </header>
 

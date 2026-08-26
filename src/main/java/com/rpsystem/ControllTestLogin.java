@@ -39,9 +39,4 @@ public class ControllTestLogin {
         model.addAttribute("temBlanksDisponiveis", !blanksDisponiveis.isEmpty());
         return "montagem-pecas";
     }
-
-    @GetMapping("/fluxo-caixa")
-    public String getViewFluxoCaixa() {
-        return "fluxo-caixa";
-    }
 }

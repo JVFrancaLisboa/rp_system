@@ -3,6 +3,7 @@ package com.rpsystem.application.inventory;
 import com.rpsystem.domain.inventory.model.LoteBlank;
 import com.rpsystem.domain.inventory.model.LoteBlankItem;
 import com.rpsystem.domain.inventory.repository.LoteBlankRepository;
+import com.rpsystem.application.finance.FluxoCaixaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +20,11 @@ public class LoteBlankService {
     private static final int SCALE = 6;
 
     private final LoteBlankRepository loteBlankRepository;
+    private final FluxoCaixaService fluxoCaixaService;
 
-    public LoteBlankService(LoteBlankRepository loteBlankRepository) {
+    public LoteBlankService(LoteBlankRepository loteBlankRepository, FluxoCaixaService fluxoCaixaService) {
         this.loteBlankRepository = loteBlankRepository;
+        this.fluxoCaixaService = fluxoCaixaService;
     }
 
     @Transactional
@@ -50,7 +53,9 @@ public class LoteBlankService {
             item.setCustoComFreteCalculado(item.getPrecoNotaUnitario().add(freteUnitario).setScale(2, RoundingMode.HALF_UP));
         }
 
-        return loteBlankRepository.save(loteBlank);
+        LoteBlank salvo = loteBlankRepository.save(loteBlank);
+        fluxoCaixaService.registrarEntradaBlanks(salvo);
+        return salvo;
     }
 
     private List<LoteBlankItem> consolidarItensRepetidos(List<LoteBlankItem> itens) {
