@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrada de DTF | Raro Porte</title>
+    <!-- Bootstrap 5 Core -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* Herança da Paleta Base */
+        :root {
+            --rp-bg-base: #0A0A0A;
+            --rp-bg-surface: #141414;
+            --rp-border: #2A2A2A;
+            --rp-text-main: #F5F5F5;
+            --rp-text-muted: #8A8A8A;
+            --rp-accent: #FFFFFF;
+            --rp-accent-invert: #000000;
+        }
+
+        body {
+            background-color: var(--rp-bg-base);
+            color: var(--rp-text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .surface-card {
+            background-color: var(--rp-bg-surface);
+            border: 1px solid var(--rp-border);
+            border-radius: 8px;
+        }
+
+        .form-control, .input-group-text {
+            background-color: var(--rp-bg-base);
+            border: 1px solid var(--rp-border);
+            color: var(--rp-text-main);
+        }
+
+        .form-control:focus {
+            background-color: var(--rp-bg-base);
+            border-color: var(--rp-text-muted);
+            box-shadow: none;
+            color: var(--rp-text-main);
+        }
+
+        /* Destaque visual para o sufixo de unidade de medida */
+        .input-group-text.unit-suffix {
+            background-color: var(--rp-bg-surface);
+            color: var(--rp-text-muted);
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .btn-brand {
+            background-color: var(--rp-accent);
+            color: var(--rp-accent-invert);
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-brand:hover {
+            background-color: var(--rp-accent);
+            opacity: 0.85;
+        }
+
+        .math-preview {
+            font-family: monospace;
+            font-size: 1.5rem;
+            color: var(--rp-accent);
+            letter-spacing: -0.5px;
+        }
+    </style>
+</head>
+<body class="py-5">
+
+<div class="container" style="max-width: 750px;">
+
+    <header class="mb-5 border-bottom border-secondary pb-3 d-flex align-items-center justify-content-between">
+        <div>
+            <h2 class="fw-bold text-uppercase tracking-wide mb-0">Estoque Fluido: DTF</h2>
+            <p class="text-secondary mb-0">Registro volumétrico e cálculo dinâmico de Custo Médio Ponderado.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i> Painel Geral
+            </a>
+            <a th:href="@{/fluxo-caixa}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-wallet2 me-1"></i> Fluxo de Caixa
+            </a>
+        </div>
+    </header>
+
+    <!-- Formulário transacional persistido no backend -->
+    <form id="formDtf" action="/api/v1/estoque/dtf" method="POST">
+
+        <!-- Bloco 1: Dimensões Físicas do Lote -->
+        <div class="surface-card p-4 mb-4">
+            <h5 class="mb-4 fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-rulers text-secondary"></i> Dimensões do Material
+            </h5>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small text-uppercase">Largura do Rolo/Folha</label>
+                    <div class="input-group">
+                        <input type="number" step="0.1" class="form-control calc-trigger" id="largura" name="largura" placeholder="Ex: 58.0" required>
+                        <span class="input-group-text unit-suffix border-start-0">cm</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small text-uppercase">Comprimento Total</label>
+                    <div class="input-group">
+                        <input type="number" step="0.1" class="form-control calc-trigger" id="comprimento" name="comprimento" placeholder="Ex: 1000.0" required>
+                        <span class="input-group-text unit-suffix border-start-0">cm</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Matemático em Tempo Real -->
+            <div class="mt-4 p-3 rounded border border-secondary bg-dark d-flex justify-content-between align-items-center">
+                <span class="text-secondary small text-uppercase fw-bold">Área Total Nominal:</span>
+                <span class="math-preview" id="areaPreview">0 <span class="fs-6 text-muted">cm²</span></span>
+            </div>
+        </div>
+
+        <!-- Bloco 2: Custos de Aquisição e Logística -->
+        <div class="surface-card p-4 mb-4">
+            <h5 class="mb-4 fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-currency-dollar text-secondary"></i> Composição de Custos
+            </h5>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small text-uppercase">Valor da Nota Fiscal</label>
+                    <div class="input-group">
+                        <span class="input-group-text unit-suffix border-end-0">R$</span>
+                        <input type="number" step="0.01" class="form-control calc-trigger" id="valorNota" name="valorNota" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small text-uppercase">Custos Logísticos (Uber/Busca)</label>
+                    <div class="input-group">
+                        <span class="input-group-text unit-suffix border-end-0">R$</span>
+                        <input type="number" step="0.01" class="form-control calc-trigger" id="custoLogistico" name="custoLogistico" placeholder="0.00" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 rounded border border-secondary bg-dark d-flex justify-content-between align-items-center">
+                <span class="text-secondary small text-uppercase fw-bold">Custo de Ingestão:</span>
+                <span class="math-preview" id="custoPreview">R$ 0,00</span>
+            </div>
+        </div>
+
+        <!-- Ação Transacional -->
+        <div class="d-flex justify-content-end gap-3 mt-5">
+            <a href="/dashboard" class="btn btn-link text-secondary text-decoration-none">Cancelar</a>
+            <button type="submit" class="btn btn-brand px-5 py-2" id="submitDtfButton">
+                <i class="bi bi-database-add me-2"></i> INJETAR NO ESTOQUE FLUIDO
+            </button>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    /**
+     * Motor de Feedback em Tempo Real.
+     * Processa as equações dimensionais antes da submissão ao Backend.
+     */
+    document.querySelectorAll('.calc-trigger').forEach(input => {
+        input.addEventListener('input', recalcularPreview);
+    });
+
+    function recalcularPreview() {
+        const largura = parseFloat(document.getElementById('largura').value) || 0;
+        const comprimento = parseFloat(document.getElementById('comprimento').value) || 0;
+        const valorNota = parseFloat(document.getElementById('valorNota').value) || 0;
+        const custoLogistico = parseFloat(document.getElementById('custoLogistico').value) || 0;
+
+        // Regra de Negócio: Área Lote = Largura * Comprimento
+        const areaTotal = largura * comprimento;
+        const custoTotal = valorNota + custoLogistico;
+
+        // Atualização do DOM com formatação numérica do Brasil
+        document.getElementById('areaPreview').innerHTML = `${areaTotal.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <span class="fs-6 text-muted">cm²</span>`;
+        document.getElementById('custoPreview').innerHTML = `R$ ${custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    document.getElementById('formDtf').addEventListener('submit', () => {
+        const button = document.getElementById('submitDtfButton');
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>PROCESSANDO...';
+    });
+</script>
+
+</body>
+</html>

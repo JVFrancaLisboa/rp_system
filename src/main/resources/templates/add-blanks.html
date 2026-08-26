@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingestão de Blanks | Raro Porte</title>
+    <!-- Bootstrap 5 Core -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Fundação Visual: Paleta Streetwear Utilitária */
+        :root {
+            --rp-bg-base: #0A0A0A;
+            --rp-bg-surface: #141414;
+            --rp-border: #2A2A2A;
+            --rp-text-main: #F5F5F5;
+            --rp-text-muted: #8A8A8A;
+            --rp-accent: #FFFFFF;
+            --rp-accent-invert: #000000;
+        }
+
+        body {
+            background-color: var(--rp-bg-base);
+            color: var(--rp-text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .surface-card {
+            background-color: var(--rp-bg-surface);
+            border: 1px solid var(--rp-border);
+            border-radius: 8px;
+        }
+
+        .form-control, .form-select, .input-group-text {
+            background-color: var(--rp-bg-base);
+            border: 1px solid var(--rp-border);
+            color: var(--rp-text-main);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--rp-bg-base);
+            border-color: var(--rp-text-muted);
+            box-shadow: none;
+            color: var(--rp-text-main);
+        }
+
+        /* Padronização de cor para o dropdown do select no tema escuro */
+        .form-select option {
+            background-color: var(--rp-bg-surface);
+            color: var(--rp-text-main);
+        }
+
+        .btn-brand {
+            background-color: var(--rp-accent);
+            color: var(--rp-accent-invert);
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-brand:hover {
+            background-color: var(--rp-accent);
+            opacity: 0.85;
+        }
+
+        .btn-outline-brand {
+            border: 1px dashed var(--rp-border);
+            color: var(--rp-text-main);
+            background: transparent;
+        }
+
+        .btn-outline-brand:hover {
+            border-color: var(--rp-text-muted);
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--rp-accent);
+        }
+
+        .sku-row {
+            transition: all 0.3s ease;
+        }
+
+        .logo-img {
+            max-height: 45px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="py-5">
+
+<div class="container" style="max-width: 900px;">
+
+    <header class="mb-5 border-bottom border-secondary pb-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+            <img th:src="@{/images/logo.png}" alt="Raro Porte Logo" class="logo-img">
+            <div>
+                <h2 class="fw-bold text-uppercase tracking-wide mb-0">Entrada de Lote: Blanks</h2>
+                <p class="text-secondary mb-0">Ingestão de matrizes físicas e rateio dinâmico de frete.</p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i> Painel Geral
+            </a>
+            <a th:href="@{/fluxo-caixa}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-wallet2 me-1"></i> Fluxo de Caixa
+            </a>
+        </div>
+    </header>
+
+    <div class="alert alert-info border-0 bg-dark text-info mb-4">
+        Se o SKU Base e o tamanho já existirem neste lote, a linha será consolidada automaticamente para evitar duplicidade.
+    </div>
+
+    <!-- Formulário Padronizado (Sem Multipart) -->
+    <form action="/api/v1/lotes/blanks" method="POST" id="formLote">
+
+        <!-- Bloco 1: Metadados da Nota Fiscal -->
+        <div class="surface-card p-4 mb-4">
+            <h5 class="mb-4 fw-semibold">Dados Globais da Nota</h5>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small text-uppercase">Data de Entrada</label>
+                    <input type="datetime-local" class="form-control" name="dataEntrada" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small text-uppercase">Custo Total de Frete (R$)</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0">R$</span>
+                        <input type="number" step="0.01" class="form-control" name="valorFreteTotal" placeholder="0.00" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloco 2: Matriz de Itens (SKUs Segregados) -->
+        <div class="surface-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-semibold mb-0">Grade de Itens (Blanks)</h5>
+            </div>
+
+            <div id="skuContainer">
+                <!-- Linha Estrutural Base (Índice 0) -->
+                <div class="sku-row border border-secondary rounded p-3 mb-3" data-index="0">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label text-secondary small text-uppercase">Modelo/Cor (SKU Base)</label>
+                            <input type="text" class="form-control font-monospace text-uppercase sku-base-input" name="itens[0].skuBase" placeholder="EX: OVER-PRETA" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-secondary small text-uppercase">Tamanho</label>
+                            <select class="form-select font-monospace tamanho-input" name="itens[0].tamanho" required>
+                                <option value="" selected disabled>SEL...</option>
+                                <option value="P">P</option>
+                                <option value="M">M</option>
+                                <option value="G">G</option>
+                                <option value="GG">GG</option>
+                                <option value="XG">XG</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-secondary small text-uppercase">Qtd</label>
+                            <input type="number" min="1" class="form-control quantidade-input" name="itens[0].quantidadeAdquirida" placeholder="0" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary small text-uppercase">Preço Unit. (R$)</label>
+                            <input type="number" step="0.01" class="form-control preco-input" name="itens[0].precoNotaUnitario" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="small text-info mt-2 consolidation-note d-none">Item consolidado automaticamente com outro igual neste lote.</div>
+                </div>
+            </div>
+
+            <!-- Gatilho de Adição de Nós na Árvore DOM -->
+            <button type="button" class="btn btn-outline-brand w-100 py-3 mt-2" onclick="adicionarSkuRow()">
+                + ADICIONAR NOVA GRADE AO LOTE
+            </button>
+        </div>
+
+        <!-- Ação Transacional -->
+        <div class="d-flex justify-content-end gap-3 mt-5">
+            <button th:href="@{/}" type="button" class="btn btn-link text-secondary text-decoration-none">Cancelar</button>
+            <button type="submit" class="btn btn-brand px-5 py-2">CONSOLIDAR LOTE NO ESTOQUE</button>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    /**
+     * Motor de clonagem de nós do DOM.
+     * Iteração suporta inputs e selects mantendo a coesão do mapeamento do Spring MVC.
+     */
+    function adicionarSkuRow() {
+        const container = document.getElementById('skuContainer');
+        const rows = container.getElementsByClassName('sku-row');
+
+        // Determina o próximo índice na coleção
+        const newIndex = rows.length;
+
+        // Clona a estrutura da primeira linha (Deep Clone)
+        const firstRow = rows[0];
+        const newRow = firstRow.cloneNode(true);
+
+        // Atualiza a âncora de índice
+        newRow.setAttribute('data-index', newIndex);
+
+        // Varredura para remapeamento de atributos Name e limpeza de estado
+        const formElements = newRow.querySelectorAll('input, select');
+        formElements.forEach(element => {
+            // Reset de estado dependendo do nó estrutural
+            if (element.tagName === 'INPUT') {
+                element.value = '';
+            } else if (element.tagName === 'SELECT') {
+                element.selectedIndex = 0;
+            }
+
+            // Reindexação da matriz para o DTO do Spring
+            if(element.hasAttribute('name') && element.name.includes('itens[')) {
+                element.name = element.name.replace(/itens\[\d+\]/, `itens[${newIndex}]`);
+            }
+        });
+
+        newRow.classList.remove('border-info', 'shadow-sm');
+        const note = newRow.querySelector('.consolidation-note');
+        if (note) {
+            note.classList.add('d-none');
+        }
+
+        // Injeção do nó processado no DOM
+        container.appendChild(newRow);
+        registrarConsolidacaoListeners(newRow);
+    }
+
+    function registrarConsolidacaoListeners(row) {
+        row.querySelectorAll('.sku-base-input, .tamanho-input, .quantidade-input, .preco-input').forEach(input => {
+            input.addEventListener('blur', consolidarLinhasDuplicadas);
+            input.addEventListener('change', consolidarLinhasDuplicadas);
+        });
+    }
+
+    function normalizarTexto(valor) {
+        return (valor || '').trim().toUpperCase();
+    }
+
+    function getItemKey(row) {
+        const skuInput = row.querySelector('.sku-base-input');
+        const tamanhoInput = row.querySelector('.tamanho-input');
+        const skuBase = normalizarTexto(skuInput ? skuInput.value : '');
+        const tamanho = normalizarTexto(tamanhoInput ? tamanhoInput.value : '');
+
+        if (!skuBase || !tamanho) {
+            return null;
+        }
+
+        return `${skuBase}|${tamanho}`;
+    }
+
+    function renumerarLinhas() {
+        const rows = document.querySelectorAll('#skuContainer .sku-row');
+        rows.forEach((row, index) => {
+            row.setAttribute('data-index', index);
+
+            row.querySelectorAll('input, select').forEach(element => {
+                if (element.hasAttribute('name') && element.name.includes('itens[')) {
+                    element.name = element.name.replace(/itens\[\d+\]/, `itens[${index}]`);
+                }
+            });
+        });
+    }
+
+    function consolidarLinhasDuplicadas() {
+        const rows = Array.from(document.querySelectorAll('#skuContainer .sku-row'));
+        const mapa = new Map();
+
+        rows.forEach(row => {
+            const key = getItemKey(row);
+            if (!key) {
+                return;
+            }
+
+            const rowQuantidade = parseFloat(row.querySelector('.quantidade-input')?.value || '0') || 0;
+            const rowPreco = parseFloat(row.querySelector('.preco-input')?.value || '0') || 0;
+
+            if (!mapa.has(key)) {
+                mapa.set(key, { row, rowQuantidade, rowPreco });
+                return;
+            }
+
+            const destino = mapa.get(key);
+            const totalQuantidade = destino.rowQuantidade + rowQuantidade;
+            const totalValor = (destino.rowQuantidade * destino.rowPreco) + (rowQuantidade * rowPreco);
+            const precoMedio = totalQuantidade > 0 ? (totalValor / totalQuantidade) : 0;
+
+            destino.rowQuantidade = totalQuantidade;
+            destino.rowPreco = precoMedio;
+
+            const quantidadeDestino = destino.row.querySelector('.quantidade-input');
+            const precoDestino = destino.row.querySelector('.preco-input');
+            if (quantidadeDestino) {
+                quantidadeDestino.value = String(totalQuantidade);
+            }
+            if (precoDestino) {
+                precoDestino.value = precoMedio.toFixed(2);
+            }
+
+            destino.row.classList.add('border-info', 'shadow-sm');
+            const note = destino.row.querySelector('.consolidation-note');
+            if (note) {
+                note.classList.remove('d-none');
+            }
+
+            row.remove();
+        });
+
+        renumerarLinhas();
+    }
+
+    registrarConsolidacaoListeners(document.querySelector('.sku-row'));
+</script>
+
+</body>
+</html>
