@@ -44,6 +44,7 @@ public class DashboardController {
         long totalPecasDisponiveis = loteBlankItemRepository.somaQuantidadeDisponivel();
         long totalLotes = loteBlankRepository.totalLotes();
         long totalOrdens = ordemProducaoRepository.count();
+        long totalPecasProntas = ordemProducaoRepository.somarQuantidadeDisponivel();
 
         EstoqueFluidoDtf estoque = estoqueFluidoDtfRepository.findTopByOrderByIdDesc().orElse(null);
         OrdemProducao ultimaOrdem = ordemProducaoRepository.findTopByOrderByRegistradaEmDescIdDesc().orElse(null);
@@ -55,14 +56,17 @@ public class DashboardController {
         NumberFormat moedaFormat = NumberFormat.getCurrencyInstance(PT_BR);
         List<OrdemResumoCard> ordensRecentesCards = ordensRecentes.stream()
             .map(ordem -> new OrdemResumoCard(
+                ordem.getId(),
                 ordem.getFotoMockupPath() != null ? ordem.getFotoMockupPath() : "/images/logo.png",
                 ordem.getDescricaoModelo(),
+                ordem.getTamanho(),
                 ordem.getOperadorResponsavel(),
                 moedaFormat.format(ordem.getCpvUnitarioFinal() != null ? ordem.getCpvUnitarioFinal() : BigDecimal.ZERO),
                 moedaFormat.format(ordem.getCpvTotal() != null ? ordem.getCpvTotal() : BigDecimal.ZERO),
                 moedaFormat.format((ordem.getCpvUnitarioFinal() != null ? ordem.getCpvUnitarioFinal() : BigDecimal.ZERO).multiply(BigDecimal.valueOf(2.5))),
                 moedaFormat.format((ordem.getCpvUnitarioFinal() != null ? ordem.getCpvUnitarioFinal() : BigDecimal.ZERO).multiply(BigDecimal.valueOf(3.5))),
                 (ordem.getQuantidadeProduzir() != null ? ordem.getQuantidadeProduzir() : 0) + " pcs",
+                (ordem.getQuantidadeDisponivel() != null ? ordem.getQuantidadeDisponivel() : 0) + " un",
                 ordem.getRegistradaEm() != null ? DATA_HORA_FORMATTER.format(ordem.getRegistradaEm()) : "--/--/---- --:--"
             ))
             .toList();
@@ -70,6 +74,7 @@ public class DashboardController {
         model.addAttribute("totalPecasDisponiveis", totalPecasDisponiveis);
         model.addAttribute("totalLotes", totalLotes);
         model.addAttribute("totalOrdens", totalOrdens);
+        model.addAttribute("totalPecasProntas", totalPecasProntas);
         model.addAttribute("saldoDtf", saldoDtf);
         model.addAttribute("custoMedioDtf", custoMedioDtf);
         model.addAttribute("cpvMedioAtual", cpvMedioAtual);
@@ -95,14 +100,17 @@ public class DashboardController {
     }
 
     public record OrdemResumoCard(
+            Long id,
             String fotoMockupPath,
             String descricaoModelo,
+            String tamanho,
             String operadorResponsavel,
             String cpvUnitarioFinalFormatado,
             String cpvTotalFormatado,
             String precoFinalMultiplicador25,
             String precoFinalMultiplicador35,
             String quantidadeProduzidaFormatada,
+            String quantidadeDisponivelFormatada,
             String registradaEmFormatada
     ) {
     }

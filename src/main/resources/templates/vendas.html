@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendas & PDV | Raro Porte</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --rp-bg-base: #0A0A0A;
+            --rp-bg-surface: #141414;
+            --rp-border: #2A2A2A;
+            --rp-text-main: #F5F5F5;
+            --rp-text-muted: #8A8A8A;
+            --rp-accent: #FFFFFF;
+            --rp-accent-invert: #000000;
+            --rp-sidebar-width: 260px;
+        }
+
+        body {
+            background-color: var(--rp-bg-base);
+            color: var(--rp-text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--rp-sidebar-width);
+            background-color: var(--rp-bg-surface);
+            border-right: 1px solid var(--rp-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--rp-border);
+        }
+
+        .logo-img {
+            max-height: 40px;
+            object-fit: contain;
+        }
+
+        .nav-menu {
+            padding: 1.5rem 1rem;
+            flex-grow: 1;
+        }
+
+        .nav-link {
+            color: var(--rp-text-muted);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--rp-accent);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            margin-left: var(--rp-sidebar-width);
+            padding: 2rem;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--rp-border);
+        }
+
+        .card-kpi {
+            background-color: var(--rp-bg-surface);
+            border: 1px solid var(--rp-border);
+            border-radius: 8px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card-kpi:hover {
+            border-color: #3A3A3A;
+        }
+
+        .text-neon-green { color: #2ea043; }
+        .text-neon-blue { color: #58a6ff; }
+        .text-neon-purple { color: #a371f7; }
+        .text-neon-orange { color: #f0883e; }
+        
+        .peca-card {
+            background: linear-gradient(180deg, #181818 0%, #111111 100%);
+            border: 1px solid var(--rp-border);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .peca-card:hover {
+            border-color: #444;
+            transform: translateY(-2px);
+        }
+
+        .peca-card img {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+            background-color: #000;
+            border-bottom: 1px solid var(--rp-border);
+        }
+
+        .table-ledger {
+            --bs-table-bg: var(--rp-bg-surface);
+            --bs-table-border-color: var(--rp-border);
+            --bs-table-color: var(--rp-text-main);
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 0.85rem;
+        }
+        .table-ledger thead {
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        .table-ledger tr:hover {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--rp-bg-base);
+            border: 1px solid var(--rp-border);
+            color: var(--rp-text-main);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: var(--rp-bg-base);
+            border-color: var(--rp-text-muted);
+            box-shadow: none;
+            color: var(--rp-text-main);
+        }
+        .form-select option {
+            background-color: var(--rp-bg-surface);
+            color: var(--rp-text-main);
+        }
+        .btn-brand {
+            background-color: var(--rp-accent);
+            color: var(--rp-accent-invert);
+            font-weight: 600;
+            border: none;
+        }
+        .btn-brand:hover {
+            background-color: #E0E0E0;
+            color: var(--rp-accent-invert);
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside class="sidebar">
+        <div class="sidebar-header d-flex align-items-center gap-3">
+            <img th:src="@{/images/logo.png}" alt="Raro Porte Logo" class="logo-img" onerror="this.style.display='none'">
+            <h5 class="fw-bold text-uppercase mb-0 tracking-wide" style="letter-spacing: 1px;">Core</h5>
+        </div>
+
+        <nav class="nav-menu d-flex flex-column">
+            <span class="text-secondary small text-uppercase fw-bold mb-3 px-3" style="letter-spacing: 1px; font-size: 0.7rem;">Operações</span>
+
+            <a th:href="@{/}" class="nav-link">
+                <i class="bi bi-grid-1x2"></i> Painel Geral
+            </a>
+            <a th:href="@{/add-blanks}" class="nav-link">
+                <i class="bi bi-box-seam"></i> Gestão de Blanks
+            </a>
+            <a th:href="@{/entrada-dtf}" class="nav-link">
+                <i class="bi bi-layers"></i> Estoque Fluido DTF
+            </a>
+            <a th:href="@{/montagem-pecas}" class="nav-link">
+                <i class="bi bi-cpu"></i> Ordens de Produção
+            </a>
+            <a th:href="@{/vendas}" class="nav-link active">
+                <i class="bi bi-cart-check"></i> Vendas / PDV
+            </a>
+
+            <span class="text-secondary small text-uppercase fw-bold mt-4 mb-3 px-3" style="letter-spacing: 1px; font-size: 0.7rem;">Administrativo</span>
+
+            <a th:href="@{/fluxo-caixa}" class="nav-link">
+                <i class="bi bi-wallet2"></i> Fluxo de Caixa / Ledger
+            </a>
+        </nav>
+
+        <div class="p-3 border-top" style="border-color: var(--rp-border) !important;">
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-dark rounded-circle d-flex align-items-center justify-content-center border" style="width: 35px; height: 35px; border-color: var(--rp-border) !important;">
+                    <i class="bi bi-person-fill text-secondary"></i>
+                </div>
+                <div>
+                    <p class="mb-0 small fw-bold">Administrador</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.75rem;">Sessão Ativa</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+
+        <!-- Mensagens de Feedback -->
+        <div th:if="${mensagemSucesso}" class="alert alert-success border-0 bg-success bg-opacity-25 text-success alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${mensagemSucesso}">Sucesso</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${mensagemErro}" class="alert alert-danger border-0 bg-danger bg-opacity-25 text-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${mensagemErro}">Erro</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div>
+                <h2 class="h4 fw-bold text-light mb-1">MÓDULO DE VENDAS: PDV DIRETO & CANAIS</h2>
+                <p class="text-secondary small mb-0">Apontamento de saídas (Boca a Boca e Nuvemshop), baixa de estoque e apuração de margem real.</p>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <button class="btn btn-brand btn-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalNovaVenda" th:disabled="${!temPecasDisponiveis}">
+                    <i class="bi bi-plus-lg me-1"></i> Nova Venda
+                </button>
+                <span class="text-secondary font-monospace border rounded px-3 py-2 small" style="border-color: var(--rp-border) !important; background: var(--rp-bg-surface);">
+                    <i class="bi bi-calendar3 me-2"></i> <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}">26/08/2026</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- KPIs DE VENDAS -->
+        <div class="row g-3 mb-5">
+            <div class="col-12 col-md-3">
+                <div class="card card-kpi h-100 p-3 shadow-sm">
+                    <h6 class="text-secondary text-uppercase mb-1" style="font-size: 0.7rem;">Faturamento Total (Vendas)</h6>
+                    <h3 class="fw-bold text-neon-green mb-0" th:text="${totalFaturamentoFormatado}">R$ 0,00</h3>
+                    <small class="text-secondary"><i class="bi bi-cash-stack"></i> Receita bruta gerada</small>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <div class="card card-kpi h-100 p-3 shadow-sm">
+                    <h6 class="text-secondary text-uppercase mb-1" style="font-size: 0.7rem;">Lucro Bruto Real (Após CPV)</h6>
+                    <h3 class="fw-bold text-neon-green mb-0" th:text="${totalLucroBrutoFormatado}">R$ 0,00</h3>
+                    <small class="text-secondary"><i class="fa-solid fa-chart-line"></i> Margem Média: <span class="text-light fw-bold" th:text="${margemMediaFormatada}">0%</span></small>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <div class="card card-kpi h-100 p-3 shadow-sm">
+                    <h6 class="text-secondary text-uppercase mb-1" style="font-size: 0.7rem;">Peças Vendidas</h6>
+                    <h3 class="fw-bold text-neon-blue mb-0"><span th:text="${totalPecasVendidas}">0</span> <span class="fs-6 text-secondary">unidades</span></h3>
+                    <small class="text-secondary"><i class="bi bi-bag-check"></i> Volume escoado</small>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <div class="card card-kpi h-100 p-3 shadow-sm">
+                    <h6 class="text-secondary text-uppercase mb-1" style="font-size: 0.7rem;">Estoque de Pronta-Entrega</h6>
+                    <h3 class="fw-bold text-neon-orange mb-0"><span th:text="${totalPecasEstoque}">0</span> <span class="fs-6 text-secondary">peças</span></h3>
+                    <small class="text-secondary"><i class="bi bi-box-seam"></i> Peças acabadas prontas</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 1: GRADE DE PEÇAS PRONTAS (ESTOQUE ACABADO) -->
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold text-uppercase mb-0 text-light" style="letter-spacing: 0.5px; font-size: 0.95rem;">
+                        <i class="bi bi-boxes me-2 text-secondary"></i>Estoque de Peças Prontas (Disponíveis para Venda)
+                    </h5>
+                    <small class="text-secondary">Selecione uma peça confeccionada para realizar a venda e abater o saldo físico.</small>
+                </div>
+                <span class="badge bg-dark border border-secondary text-secondary" th:text="|${#lists.size(pecasDisponiveis)} modelo(s) em estoque|">0 modelos</span>
+            </div>
+
+            <div class="row g-3" th:if="${temPecasDisponiveis}">
+                <div class="col-sm-6 col-lg-4 col-xl-3" th:each="peca : ${pecasDisponiveis}">
+                    <article class="peca-card">
+                        <img th:src="${peca.fotoMockupPath}" alt="Mockup da peça">
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0 text-light text-truncate" style="max-width: 170px;" th:text="${peca.descricaoModelo}">Camiseta Streetwear</h6>
+                                <span class="badge bg-secondary font-monospace" th:text="${peca.tamanho}">G</span>
+                            </div>
+                            <p class="text-secondary small font-monospace mb-2" th:text="${peca.skuBase}">OVER-PRETA</p>
+
+                            <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded border border-secondary border-opacity-25 mb-3">
+                                <div>
+                                    <small class="text-secondary d-block" style="font-size: 0.7rem;">ESTOQUE DISPONÍVEL</small>
+                                    <span class="fw-bold text-neon-orange font-monospace" th:text="|${peca.quantidadeDisponivel} un|">10 un</span>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-secondary d-block" style="font-size: 0.7rem;">CPV DE CUSTO</small>
+                                    <span class="fw-bold text-light font-monospace" th:text="${peca.cpvFormatado}">R$ 42,00</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center small text-secondary mb-1">
+                                    <span>Sugerido 2.5x: <strong class="text-light font-monospace" th:text="${peca.precoSugerido25Formatado}">R$ 105,00</strong></span>
+                                    <span>3.5x: <strong class="text-light font-monospace" th:text="${peca.precoSugerido35Formatado}">R$ 147,00</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto">
+                                <button type="button" class="btn btn-outline-light btn-sm w-100 fw-bold py-2"
+                                        th:data-id="${peca.id}"
+                                        th:data-nome="${peca.descricaoModelo}"
+                                        th:data-tamanho="${peca.tamanho}"
+                                        th:data-saldo="${peca.quantidadeDisponivel}"
+                                        th:data-cpv="${peca.cpvValor}"
+                                        th:data-sugerido25="${peca.precoSugerido25Valor}"
+                                        th:data-sugerido35="${peca.precoSugerido35Valor}"
+                                        onclick="abrirModalVendaDireta(this)">
+                                    <i class="bi bi-cart-plus me-1"></i> VENDER ESTA PEÇA
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="surface-card p-4 text-center" th:if="${!temPecasDisponiveis}">
+                <i class="bi bi-inbox text-secondary display-4 d-block mb-3"></i>
+                <h6 class="mb-1 text-light">Nenhuma peça acabada com estoque disponível</h6>
+                <p class="text-secondary small mb-3">Finalize uma Ordem de Produção no módulo de montagem para abastecer o estoque de peças prontas.</p>
+                <a th:href="@{/montagem-pecas}" class="btn btn-outline-brand btn-sm px-4">
+                    <i class="bi bi-cpu me-1"></i> Ir para Ordens de Produção
+                </a>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: HISTÓRICO DE AUDITORIA DE VENDAS -->
+        <section>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold text-uppercase mb-0 text-light" style="letter-spacing: 0.5px; font-size: 0.95rem;">
+                        <i class="bi bi-clock-history me-2 text-secondary"></i>Auditoria de Vendas Realizadas
+                    </h5>
+                    <small class="text-secondary">Registro imutável de vendas diretas e integrações.</small>
+                </div>
+                <span class="text-secondary small" th:text="|${#lists.size(vendas)} venda(s) registrada(s)|">0 vendas</span>
+            </div>
+
+            <div class="table-responsive border border-secondary rounded">
+                <table class="table table-hover table-ledger mb-0 align-middle">
+                    <thead class="table-dark border-bottom border-secondary">
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>ID Venda</th>
+                            <th>Canal</th>
+                            <th>Produto / Modelo</th>
+                            <th>Tam</th>
+                            <th>Qtd</th>
+                            <th>Preço Unit.</th>
+                            <th>Faturamento Total</th>
+                            <th>CPV Total</th>
+                            <th>Lucro Bruto</th>
+                            <th>Margem</th>
+                            <th>Cliente / Destino</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(vendas)}">
+                            <td colspan="12" class="text-center py-4 text-secondary">
+                                <i class="bi bi-cart-x fs-3 d-block mb-2"></i>
+                                Nenhuma venda registrada até o momento.
+                            </td>
+                        </tr>
+                        <tr th:each="v : ${vendas}">
+                            <td class="text-secondary" th:text="${v.timestamp}">26/08/2026 10:30</td>
+                            <td class="fw-bold" th:text="${v.codigoVenda}">VND-8912</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${v.canalVendaCode == 'NUVEMSHOP' ? 'bg-primary bg-opacity-25 text-primary border border-primary' : 'bg-success bg-opacity-25 text-success border border-success'}"
+                                      th:text="${v.canalVendaDescricao}">
+                                    Boca a Boca / Direta
+                                </span>
+                            </td>
+                            <td class="fw-semibold text-light" th:text="${v.descricaoProduto}">Camiseta Drop 1</td>
+                            <td><span class="badge bg-dark border" th:text="${v.tamanho}">G</span></td>
+                            <td class="font-monospace fw-bold" th:text="${v.quantidade}">1</td>
+                            <td class="text-secondary font-monospace" th:text="${v.precoUnitarioFormatado}">R$ 120,00</td>
+                            <td class="text-neon-green font-monospace fw-bold" th:text="${v.valorTotalFormatado}">R$ 120,00</td>
+                            <td class="text-secondary font-monospace" th:text="${v.cpvTotalFormatado}">R$ 42,00</td>
+                            <td class="text-neon-green font-monospace fw-bold" th:text="${v.lucroBrutoFormatado}">+ R$ 78,00</td>
+                            <td class="text-neon-green font-monospace" th:text="${v.margemPercentualFormatada}">65.0%</td>
+                            <td class="text-secondary" th:text="${v.nomeCliente}">Lucas Amigo</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- MODAL REGISTRO DE VENDA -->
+<div class="modal fade" id="modalNovaVenda" tabindex="-1" aria-labelledby="modalNovaVendaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: var(--rp-bg-surface); border: 1px solid var(--rp-border);">
+            <form th:action="@{/api/v1/vendas}" method="POST" id="formVenda">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title fw-bold text-light" id="modalNovaVendaLabel">
+                        <i class="bi bi-cart-check me-2"></i> Registrar Venda de Peça
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Seleção da Peça -->
+                        <div class="col-12">
+                            <label class="form-label small text-secondary">Peça / Modelo Confeccionado *</label>
+                            <select class="form-select font-monospace" name="ordemProducaoId" id="selectOrdem" required onchange="aoSelecionarPecha()">
+                                <option value="" selected disabled>Selecione a peça...</option>
+                                <option th:each="p : ${pecasDisponiveis}"
+                                        th:value="${p.id}"
+                                        th:data-nome="${p.descricaoModelo}"
+                                        th:data-tamanho="${p.tamanho}"
+                                        th:data-saldo="${p.quantidadeDisponivel}"
+                                        th:data-cpv="${p.cpvValor}"
+                                        th:data-sugerido25="${p.precoSugerido25Valor}"
+                                        th:data-sugerido35="${p.precoSugerido35Valor}"
+                                        th:text="${p.descricaoModelo + ' [' + p.tamanho + '] - Saldo: ' + p.quantidadeDisponivel + ' un | CPV: ' + p.cpvFormatado}">
+                                    Camiseta Drop 1 [G] - Saldo: 10 un
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-secondary">Canal de Venda *</label>
+                            <select class="form-select" name="canalVenda" required>
+                                <option th:each="c : ${canaisVenda}" th:value="${c.name()}" th:text="${c.descricao}">Boca a Boca</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-secondary">Forma de Pagamento *</label>
+                            <select class="form-select" name="formaPagamento" required>
+                                <option th:each="f : ${formasPagamento}" th:value="${f.name()}" th:text="${f.descricao}">PIX</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small text-secondary">Nome do Cliente / Comprador (Opcional)</label>
+                            <input type="text" class="form-control" name="nomeCliente" placeholder="Ex: Lucas Ferreira (Amigo do Josué)">
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-secondary">Quantidade Vendida *</label>
+                            <input type="number" min="1" value="1" class="form-control" id="vendaQtd" name="quantidade" required oninput="recalcularPreviaLucro()">
+                            <small class="text-secondary d-block mt-1" id="vendaSaldoHint">Selecione uma peça.</small>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label small text-secondary">Preço Unit. de Venda (R$) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0">R$</span>
+                                <input type="number" step="0.01" min="0.01" class="form-control" id="vendaPreco" name="precoVendaUnitario" placeholder="0.00" required oninput="recalcularPreviaLucro()">
+                            </div>
+                            <div class="d-flex gap-1 mt-1" id="botoesSugeridos" style="display: none !important;">
+                                <button type="button" class="btn btn-dark btn-sm py-0 px-1 border" style="font-size: 0.65rem;" onclick="aplicarPrecoSugerido(2.5)">2.5x</button>
+                                <button type="button" class="btn btn-dark btn-sm py-0 px-1 border" style="font-size: 0.65rem;" onclick="aplicarPrecoSugerido(3.5)">3.5x</button>
+                            </div>
+                        </div>
+
+                        <!-- Card de Projeção em Tempo Real -->
+                        <div class="col-12">
+                            <div class="p-3 rounded border border-secondary bg-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-secondary small text-uppercase">Receita Total Bruta:</span>
+                                    <span class="font-monospace fw-bold text-light" id="prevFaturamento">R$ 0,00</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-secondary small text-uppercase">Custo CPV das Peças:</span>
+                                    <span class="font-monospace text-secondary" id="prevCpvTotal">- R$ 0,00</span>
+                                </div>
+                                <hr class="border-secondary my-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-light small text-uppercase">Lucro Bruto Apurado:</span>
+                                    <span class="font-monospace fw-bold text-neon-green fs-6" id="prevLucroBruto">+ R$ 0,00 (<span id="prevMargem">0%</span>)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small text-secondary">Conta de Entrada / Caixa</label>
+                            <select class="form-select" name="contaId">
+                                <option th:each="conta : ${contas}" th:value="${conta.id}" th:text="${conta.nome}">Caixa Operacional Principal</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small text-secondary">Observações da Venda</label>
+                            <textarea class="form-control" name="observacoes" rows="2" placeholder="Informações de entrega, desconto concedido, etc..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-brand px-4">Confirmar Venda & Baixar Estoque</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let cpvSelecionado = 0;
+    let sugerido25Valor = 0;
+    let sugerido35Valor = 0;
+
+    function aoSelecionarPecha() {
+        const select = document.getElementById('selectOrdem');
+        const selectedOption = select.options[select.selectedIndex];
+        if (!selectedOption || !selectedOption.dataset.saldo) return;
+
+        const saldo = parseInt(selectedOption.dataset.saldo || '0', 10);
+        cpvSelecionado = parseFloat(selectedOption.dataset.cpv || '0') || 0;
+        sugerido25Valor = parseFloat(selectedOption.dataset.sugerido25 || '0') || 0;
+        sugerido35Valor = parseFloat(selectedOption.dataset.sugerido35 || '0') || 0;
+
+        const qtdInput = document.getElementById('vendaQtd');
+        qtdInput.max = String(saldo);
+        if (parseInt(qtdInput.value || '1', 10) > saldo) {
+            qtdInput.value = String(saldo);
+        }
+
+        document.getElementById('vendaSaldoHint').textContent = `Saldo disponível: ${saldo} peça(s).`;
+        
+        const precoInput = document.getElementById('vendaPreco');
+        if (!precoInput.value || parseFloat(precoInput.value) <= 0) {
+            precoInput.value = sugerido25Valor.toFixed(2);
+        }
+
+        const botoesSugeridos = document.getElementById('botoesSugeridos');
+        if (botoesSugeridos) {
+            botoesSugeridos.style.setProperty('display', 'flex', 'important');
+        }
+
+        recalcularPreviaLucro();
+    }
+
+    function aplicarPrecoSugerido(multiplicador) {
+        const precoInput = document.getElementById('vendaPreco');
+        if (multiplicador === 2.5) {
+            precoInput.value = sugerido25Valor.toFixed(2);
+        } else {
+            precoInput.value = sugerido35Valor.toFixed(2);
+        }
+        recalcularPreviaLucro();
+    }
+
+    function recalcularPreviaLucro() {
+        const qtd = parseInt(document.getElementById('vendaQtd').value || '0', 10) || 0;
+        const precoUnit = parseFloat(document.getElementById('vendaPreco').value || '0') || 0;
+
+        const faturamento = qtd * precoUnit;
+        const cpvTotal = qtd * cpvSelecionado;
+        const lucroBruto = faturamento - cpvTotal;
+        const margem = faturamento > 0 ? ((lucroBruto / faturamento) * 100).toFixed(1) : '0';
+
+        document.getElementById('prevFaturamento').textContent = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
+        document.getElementById('prevCpvTotal').textContent = `- R$ ${cpvTotal.toFixed(2).replace('.', ',')}`;
+        document.getElementById('prevLucroBruto').innerHTML = `+ R$ ${lucroBruto.toFixed(2).replace('.', ',')} (<span id="prevMargem">${margem}%</span>)`;
+    }
+
+    function abrirModalVendaDireta(button) {
+        const id = button.dataset.id;
+        const select = document.getElementById('selectOrdem');
+        select.value = id;
+        aoSelecionarPecha();
+
+        const modal = new bootstrap.Modal(document.getElementById('modalNovaVenda'));
+        modal.show();
+    }
+</script>
+
+</body>
+</html>

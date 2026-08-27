@@ -95,6 +95,7 @@ public class OrdemProducaoService {
         ordem.setDescricaoModelo(request.getDescricaoModelo());
         ordem.setLoteBlankItem(itemSelecionado);
         ordem.setQuantidadeProduzir(request.getQuantidadeProduzir());
+        ordem.setQuantidadeDisponivel(request.getQuantidadeProduzir());
         ordem.setOperadorResponsavel(request.getOperadorResponsavel());
         ordem.setFatorAproveitamentoDtfPerc(request.getFatorAproveitamentoPerc());
         ordem.setRegistradaEm(LocalDateTime.now());

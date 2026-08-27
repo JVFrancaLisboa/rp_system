@@ -131,6 +131,9 @@
             <a th:href="@{/}" class="btn btn-outline-secondary btn-sm px-3">
                 <i class="bi bi-arrow-left me-1"></i> Painel Geral
             </a>
+            <a th:href="@{/vendas}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-cart-check me-1"></i> Vendas
+            </a>
             <a th:href="@{/fluxo-caixa}" class="btn btn-outline-secondary btn-sm px-3">
                 <i class="bi bi-wallet2 me-1"></i> Fluxo de Caixa
             </a>
@@ -141,7 +144,7 @@
         Não há blanks com saldo disponível no momento. Cadastre um lote de blanks antes de liberar novas ordens de produção.
     </div>
 
-    <form action="/api/v1/producao/ordens" method="POST" enctype="multipart/form-data" id="formProducao">
+    <form th:action="@{/api/v1/producao/ordens}" method="POST" enctype="multipart/form-data" id="formProducao">
         <div class="row g-4">
 
             <!-- EIXO ESQUERDO: Motor de Regras e Fragmentação -->

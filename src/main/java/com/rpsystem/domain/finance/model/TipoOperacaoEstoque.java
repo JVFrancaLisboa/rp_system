@@ -6,6 +6,7 @@ public enum TipoOperacaoEstoque {
     BAIXA_MANUFATURA_BLANK("Baixa de Manufatura (Blank)"),
     BAIXA_MANUFATURA_DTF("Baixa de Manufatura (DTF)"),
     REFUGO_DTF("Refugo / Ineficiência de Corte"),
+    SAIDA_VENDA_PRODUTO("Saída por Venda"),
     AJUSTE_ESTOQUE("Ajuste de Estoque");
 
     private final String descricao;

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
@@ -19,10 +20,10 @@ class HomeControllerTest {
     private MockMvc mockMvc;
 
     @Test
+    @WithMockUser(username = "admin")
     void homePageShouldRenderWithBootstrapAndMessage() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("bootstrap")))
-                .andExpect(content().string(containsString("Sistema inicial com Spring Boot, Bootstrap e MySQL.")));
+                .andExpect(content().string(containsString("Raro Porte")));
     }
 }

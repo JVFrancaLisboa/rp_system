@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +30,7 @@ public class LoteBlankService {
 
     @Transactional
     public LoteBlank registrar(LoteBlank loteBlank) {
-        loteBlank.setItens(consolidarItensRepetidos(loteBlank.getItens()));
+        loteBlank.setItens(new ArrayList<>(consolidarItensRepetidos(loteBlank.getItens())));
         validarLote(loteBlank);
 
         BigDecimal custoTotalItens = loteBlank.getItens().stream()
@@ -40,6 +41,8 @@ public class LoteBlankService {
             throw new IllegalArgumentException("O lote precisa ter valor total de itens maior que zero.");
         }
 
+        BigDecimal freteTotal = loteBlank.getValorFreteTotal() != null ? loteBlank.getValorFreteTotal() : BigDecimal.ZERO;
+
         for (LoteBlankItem item : loteBlank.getItens()) {
             item.setLoteBlank(loteBlank);
             item.setQuantidadeDisponivel(item.getQuantidadeAdquirida());
@@ -47,7 +50,7 @@ public class LoteBlankService {
             BigDecimal subtotalItem = item.getPrecoNotaUnitario()
                     .multiply(BigDecimal.valueOf(item.getQuantidadeAdquirida()));
             BigDecimal proporcaoValor = subtotalItem.divide(custoTotalItens, SCALE, RoundingMode.HALF_UP);
-            BigDecimal freteRateadoItem = loteBlank.getValorFreteTotal().multiply(proporcaoValor);
+            BigDecimal freteRateadoItem = freteTotal.multiply(proporcaoValor);
             BigDecimal freteUnitario = freteRateadoItem.divide(BigDecimal.valueOf(item.getQuantidadeAdquirida()), SCALE, RoundingMode.HALF_UP);
 
             item.setCustoComFreteCalculado(item.getPrecoNotaUnitario().add(freteUnitario).setScale(2, RoundingMode.HALF_UP));
@@ -59,9 +62,13 @@ public class LoteBlankService {
     }
 
     private List<LoteBlankItem> consolidarItensRepetidos(List<LoteBlankItem> itens) {
+        if (itens == null) {
+            return new ArrayList<>();
+        }
         Map<String, LoteBlankItem> itensConsolidados = new LinkedHashMap<>();
 
         for (LoteBlankItem item : itens) {
+            if (item == null) continue;
             String chave = montarChave(item);
             LoteBlankItem consolidado = itensConsolidados.get(chave);
 
@@ -70,22 +77,25 @@ public class LoteBlankService {
                 continue;
             }
 
-            int quantidadeExistente = consolidado.getQuantidadeAdquirida();
-            int quantidadeNova = item.getQuantidadeAdquirida();
-            BigDecimal valorTotalExistente = consolidado.getPrecoNotaUnitario()
-                    .multiply(BigDecimal.valueOf(quantidadeExistente));
-            BigDecimal valorTotalNovo = item.getPrecoNotaUnitario()
-                    .multiply(BigDecimal.valueOf(quantidadeNova));
+            int quantidadeExistente = consolidado.getQuantidadeAdquirida() != null ? consolidado.getQuantidadeAdquirida() : 0;
+            int quantidadeNova = item.getQuantidadeAdquirida() != null ? item.getQuantidadeAdquirida() : 0;
+            BigDecimal precoExistente = consolidado.getPrecoNotaUnitario() != null ? consolidado.getPrecoNotaUnitario() : BigDecimal.ZERO;
+            BigDecimal precoNovo = item.getPrecoNotaUnitario() != null ? item.getPrecoNotaUnitario() : BigDecimal.ZERO;
+
+            BigDecimal valorTotalExistente = precoExistente.multiply(BigDecimal.valueOf(quantidadeExistente));
+            BigDecimal valorTotalNovo = precoNovo.multiply(BigDecimal.valueOf(quantidadeNova));
 
             int quantidadeConsolidada = quantidadeExistente + quantidadeNova;
-            BigDecimal valorConsolidado = valorTotalExistente.add(valorTotalNovo);
-            BigDecimal novoPrecoMedio = valorConsolidado.divide(BigDecimal.valueOf(quantidadeConsolidada), SCALE, RoundingMode.HALF_UP);
+            if (quantidadeConsolidada > 0) {
+                BigDecimal valorConsolidado = valorTotalExistente.add(valorTotalNovo);
+                BigDecimal novoPrecoMedio = valorConsolidado.divide(BigDecimal.valueOf(quantidadeConsolidada), SCALE, RoundingMode.HALF_UP);
 
-            consolidado.setQuantidadeAdquirida(quantidadeConsolidada);
-            consolidado.setPrecoNotaUnitario(novoPrecoMedio.setScale(2, RoundingMode.HALF_UP));
+                consolidado.setQuantidadeAdquirida(quantidadeConsolidada);
+                consolidado.setPrecoNotaUnitario(novoPrecoMedio.setScale(2, RoundingMode.HALF_UP));
+            }
         }
 
-        return List.copyOf(itensConsolidados.values());
+        return new ArrayList<>(itensConsolidados.values());
     }
 
     private String montarChave(LoteBlankItem item) {

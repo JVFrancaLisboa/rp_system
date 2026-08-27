@@ -20,8 +20,10 @@ public class LoteBlankController {
 
     @PostMapping("/blanks")
     public String salvar(@ModelAttribute LoteBlank loteBlank) {
-        for (LoteBlankItem item : loteBlank.getItens()) {
-            item.setLoteBlank(loteBlank);
+        if (loteBlank.getItens() != null) {
+            for (LoteBlankItem item : loteBlank.getItens()) {
+                item.setLoteBlank(loteBlank);
+            }
         }
 
         loteBlankService.registrar(loteBlank);

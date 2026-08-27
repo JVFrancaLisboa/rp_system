@@ -89,6 +89,9 @@
             <a th:href="@{/}" class="btn btn-outline-secondary btn-sm px-3">
                 <i class="bi bi-arrow-left me-1"></i> Painel Geral
             </a>
+            <a th:href="@{/vendas}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-cart-check me-1"></i> Vendas
+            </a>
             <a th:href="@{/fluxo-caixa}" class="btn btn-outline-secondary btn-sm px-3">
                 <i class="bi bi-wallet2 me-1"></i> Fluxo de Caixa
             </a>
@@ -96,7 +99,7 @@
     </header>
 
     <!-- Formulário transacional persistido no backend -->
-    <form id="formDtf" action="/api/v1/estoque/dtf" method="POST">
+    <form id="formDtf" th:action="@{/api/v1/estoque/dtf}" method="POST">
 
         <!-- Bloco 1: Dimensões Físicas do Lote -->
         <div class="surface-card p-4 mb-4">
@@ -157,7 +160,7 @@
 
         <!-- Ação Transacional -->
         <div class="d-flex justify-content-end gap-3 mt-5">
-            <a href="/dashboard" class="btn btn-link text-secondary text-decoration-none">Cancelar</a>
+            <a th:href="@{/}" class="btn btn-link text-secondary text-decoration-none">Cancelar</a>
             <button type="submit" class="btn btn-brand px-5 py-2" id="submitDtfButton">
                 <i class="bi bi-database-add me-2"></i> INJETAR NO ESTOQUE FLUIDO
             </button>

@@ -22,6 +22,7 @@ import com.rpsystem.domain.finance.model.EntradaDtf;
 import com.rpsystem.domain.inventory.model.LoteBlank;
 import com.rpsystem.domain.inventory.model.LoteBlankItem;
 import com.rpsystem.domain.production.model.OrdemProducao;
+import com.rpsystem.domain.sales.model.Venda;
 import com.rpsystem.presentation.request.LancamentoManualRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -283,6 +284,57 @@ public class FluxoCaixaService {
 
             salvarTransacaoEAtualizarSaldo(txOp, conta);
         }
+    }
+
+    @Transactional
+    public void registrarVenda(Venda venda) {
+        if (venda == null) {
+            return;
+        }
+
+        ContaFinanceira conta = venda.getContaFinanceira() != null
+                ? venda.getContaFinanceira()
+                : obterContaPadrao();
+        CategoriaFinanceira catVenda = obterOuCriarCategoria("Receita de Vendas", TipoCategoriaFinanceira.RECEITA, "#2ea043");
+
+        LocalDateTime dataHora = venda.getDataVenda() != null ? venda.getDataVenda() : LocalDateTime.now();
+
+        // 1. Transação Financeira no Livro-Razão (Crédito)
+        TransacaoFinanceira tx = new TransacaoFinanceira();
+        tx.setCodigoTransacao(gerarCodigoTransacao());
+        tx.setTipoMovimento(TipoMovimento.ENTRADA);
+        tx.setTipoEvento(TipoEventoFinanceiro.VENDA_PRODUTO);
+        String canalStr = venda.getCanalVenda() != null ? venda.getCanalVenda().getDescricao() : "Venda Direta";
+        String clienteStr = venda.getNomeCliente() != null && !venda.getNomeCliente().isBlank() ? " (" + venda.getNomeCliente() + ")" : "";
+        tx.setDescricao(canalStr + ": " + venda.getDescricaoProduto() + " [" + venda.getTamanho() + "] x" + venda.getQuantidade() + clienteStr);
+        tx.setValor(venda.getValorTotal());
+        tx.setCpvHistorico(venda.getCpvTotal());
+        tx.setMargemNominal(venda.getLucroBruto());
+        tx.setDataCompetencia(dataHora);
+        tx.setDataLiquidacao(dataHora);
+        tx.setStatus(StatusTransacao.REALIZADO);
+        tx.setModuloOrigem(ModuloOrigem.SALES);
+        tx.setOrigemId(venda.getId());
+        tx.setContaFinanceira(conta);
+        tx.setCategoriaFinanceira(catVenda);
+        tx.setObservacoes(venda.getObservacoes());
+
+        salvarTransacaoEAtualizarSaldo(tx, conta);
+
+        // 2. Movimentação Física no Ledger de Estoque (Baixa de Produto Acabado)
+        LedgerEstoqueMovimento evFisico = new LedgerEstoqueMovimento();
+        evFisico.setCodigoEvento(gerarCodigoEvento());
+        evFisico.setTipoOperacao(TipoOperacaoEstoque.SAIDA_VENDA_PRODUTO);
+        evFisico.setTipoInsumo(TipoInsumo.PRODUTO_ACABADO);
+        evFisico.setVariacaoVolumetrica("-" + venda.getQuantidade() + " un");
+        evFisico.setQuantidadeDelta(BigDecimal.valueOf(venda.getQuantidade()).negate());
+        evFisico.setImpactoDetalhado("Venda " + canalStr + " | Margem de Lucro: R$ " + (venda.getLucroBruto() != null ? venda.getLucroBruto().toPlainString() : "0") + " (" + (venda.getMargemPercentual() != null ? venda.getMargemPercentual() + "%" : "-") + ")");
+        evFisico.setReferenciaMatriz("Venda #" + venda.getCodigoVenda() + " - " + venda.getDescricaoProduto() + " (" + venda.getTamanho() + ")");
+        evFisico.setCustoUnitarioAplicado(venda.getCpvUnitario());
+        evFisico.setCustoTotalImpactado(venda.getCpvTotal());
+        evFisico.setDataHora(dataHora);
+
+        ledgerFisicoRepository.save(evFisico);
     }
 
     @Transactional

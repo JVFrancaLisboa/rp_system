@@ -208,6 +208,9 @@
             <a th:href="@{/montagem-pecas}" class="nav-link">
                 <i class="bi bi-cpu"></i> Ordens de Produção
             </a>
+            <a th:href="@{/vendas}" class="nav-link">
+                <i class="bi bi-cart-check"></i> Vendas / PDV
+            </a>
 
             <span class="text-secondary small text-uppercase fw-bold mt-4 mb-3 px-3" style="letter-spacing: 1px; font-size: 0.7rem;">Administrativo</span>
 
@@ -344,12 +347,26 @@
                     </div>
                 </a>
             </div>
+
+            <div class="col-md-4">
+                <a th:href="@{/vendas}" class="text-decoration-none">
+                    <div class="surface-card p-4 d-flex align-items-center gap-3 text-white">
+                        <div class="bg-dark p-3 rounded border" style="border-color: var(--rp-border) !important;">
+                            <i class="bi bi-cart-check fs-4 text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Registrar Venda</h6>
+                            <p class="mb-0 text-secondary small">Apontar saída e apurar lucro</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
 
         <section class="mt-5">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold text-uppercase mb-0" style="letter-spacing: 0.5px; font-size: 0.9rem; color: var(--rp-text-muted);">Peças Montadas</h5>
-                <span class="text-secondary small" th:text="|${totalOrdens} ordem(ns) registrada(s)|">0 ordem(ns) registrada(s)</span>
+                <h5 class="fw-bold text-uppercase mb-0" style="letter-spacing: 0.5px; font-size: 0.9rem; color: var(--rp-text-muted);">Peças Confeccionadas</h5>
+                <span class="text-secondary small" th:text="${totalOrdens + ' ordem(ns) · ' + totalPecasProntas + ' peça(s) pronta(s) em estoque'}">0 ordem(ns)</span>
             </div>
 
             <div class="row g-3" th:if="${!ordensRecentes.isEmpty()}">
@@ -357,7 +374,10 @@
                     <article class="ordem-card">
                         <img th:src="${ordem.fotoMockupPath}" alt="Mockup da peça montada">
                         <div class="p-3">
-                            <h6 class="fw-bold mb-1" th:text="${ordem.descricaoModelo}">Modelo da peça</h6>
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 200px;" th:text="${ordem.descricaoModelo}">Modelo da peça</h6>
+                                <span class="badge bg-secondary font-monospace" th:text="${ordem.tamanho}">G</span>
+                            </div>
                             <p class="text-secondary small mb-3" th:text="|Operador: ${ordem.operadorResponsavel}|">Operador: --</p>
 
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -365,25 +385,21 @@
                                 <span class="ordem-value" th:text="${ordem.cpvUnitarioFinalFormatado}">R$ 0,00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="ordem-meta">CPV Total</span>
-                                <span class="ordem-value" th:text="${ordem.cpvTotalFormatado}">R$ 0,00</span>
+                                <span class="ordem-meta">Preço Sugerido (2.5x)</span>
+                                <span class="ordem-value text-neon-green" th:text="${ordem.precoFinalMultiplicador25}">R$ 0,00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="ordem-meta">Valor Final (CPV x 2.5)</span>
-                                <span class="ordem-value" th:text="${ordem.precoFinalMultiplicador25}">R$ 0,00</span>
+                                <span class="ordem-meta">Estoque Disponível</span>
+                                <span class="ordem-value text-neon-orange" th:text="${ordem.quantidadeDisponivelFormatada}">0 un</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="ordem-meta">Valor Final (CPV x 3.5)</span>
-                                <span class="ordem-value" th:text="${ordem.precoFinalMultiplicador35}">R$ 0,00</span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="ordem-meta">Produzidas</span>
+                                <span class="ordem-value text-secondary" th:text="${ordem.quantidadeProduzidaFormatada}">0 pcs</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="ordem-meta">Qtd Produzida</span>
-                                <span class="ordem-value" th:text="${ordem.quantidadeProduzidaFormatada}">0 pcs</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="ordem-meta">Registrada em</span>
-                                <span class="ordem-value" th:text="${ordem.registradaEmFormatada}">--/--/---- --:--</span>
-                            </div>
+
+                            <a th:href="@{/vendas}" class="btn btn-outline-light btn-sm w-100 fw-bold py-2">
+                                <i class="bi bi-cart-plus me-1"></i> VENDER ESTA PEÇA
+                            </a>
                         </div>
                     </article>
                 </div>

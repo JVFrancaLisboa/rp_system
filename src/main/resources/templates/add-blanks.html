@@ -103,6 +103,9 @@
             <a th:href="@{/}" class="btn btn-outline-secondary btn-sm px-3">
                 <i class="bi bi-arrow-left me-1"></i> Painel Geral
             </a>
+            <a th:href="@{/vendas}" class="btn btn-outline-secondary btn-sm px-3">
+                <i class="bi bi-cart-check me-1"></i> Vendas
+            </a>
             <a th:href="@{/fluxo-caixa}" class="btn btn-outline-secondary btn-sm px-3">
                 <i class="bi bi-wallet2 me-1"></i> Fluxo de Caixa
             </a>
@@ -113,8 +116,8 @@
         Se o SKU Base e o tamanho já existirem neste lote, a linha será consolidada automaticamente para evitar duplicidade.
     </div>
 
-    <!-- Formulário Padronizado (Sem Multipart) -->
-    <form action="/api/v1/lotes/blanks" method="POST" id="formLote">
+    <!-- Formulário Padronizado (Com CSRF via Thymeleaf) -->
+    <form th:action="@{/api/v1/lotes/blanks}" method="POST" id="formLote">
 
         <!-- Bloco 1: Metadados da Nota Fiscal -->
         <div class="surface-card p-4 mb-4">
@@ -180,7 +183,7 @@
 
         <!-- Ação Transacional -->
         <div class="d-flex justify-content-end gap-3 mt-5">
-            <button th:href="@{/}" type="button" class="btn btn-link text-secondary text-decoration-none">Cancelar</button>
+            <a th:href="@{/}" class="btn btn-link text-secondary text-decoration-none">Cancelar</a>
             <button type="submit" class="btn btn-brand px-5 py-2">CONSOLIDAR LOTE NO ESTOQUE</button>
         </div>
     </form>

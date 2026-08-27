@@ -36,6 +36,9 @@ public class OrdemProducao {
     @Column(name = "quantidade_produzir", nullable = false)
     private Integer quantidadeProduzir;
 
+    @Column(name = "quantidade_disponivel", nullable = false)
+    private Integer quantidadeDisponivel = 0;
+
     @Column(name = "operador_responsavel", nullable = false, length = 120)
     private String operadorResponsavel;
 
@@ -102,6 +105,33 @@ public class OrdemProducao {
 
     public void setQuantidadeProduzir(Integer quantidadeProduzir) {
         this.quantidadeProduzir = quantidadeProduzir;
+    }
+
+    public Integer getQuantidadeDisponivel() {
+        return quantidadeDisponivel;
+    }
+
+    public void setQuantidadeDisponivel(Integer quantidadeDisponivel) {
+        this.quantidadeDisponivel = quantidadeDisponivel;
+    }
+
+    public void abaterQuantidadeDisponivel(int qtd) {
+        if (this.quantidadeDisponivel == null || this.quantidadeDisponivel < qtd) {
+            throw new IllegalArgumentException("Saldo insuficiente de peças disponíveis para baixa.");
+        }
+        this.quantidadeDisponivel -= qtd;
+    }
+
+    public String getTamanho() {
+        return loteBlankItem != null ? loteBlankItem.getTamanho() : "-";
+    }
+
+    public String getSkuBase() {
+        return loteBlankItem != null ? loteBlankItem.getSkuBase() : "-";
+    }
+
+    public String getSkuCompleto() {
+        return loteBlankItem != null ? loteBlankItem.getSkuCompleto() : "-";
     }
 
     public String getOperadorResponsavel() {
